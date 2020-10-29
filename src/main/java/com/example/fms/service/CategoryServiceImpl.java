@@ -63,13 +63,13 @@ public class CategoryServiceImpl implements CategoryService{
     public boolean deleteCategoryById(Long id, String userEmail) {
         Category category = categoryRepository.findById(id).orElse(null);
         if (category != null){
+            categoryRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setAction1("CATEGORY: " + category.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
 
-            categoryRepository.deleteById(id);
             return true;
         }
         return false;

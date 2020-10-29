@@ -62,13 +62,13 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     public boolean deleteCounterpartyById(Long id, String userEmail) {
         Counterparty counterparty = counterpartyRepository.findById(id).orElse(null);
         if (counterparty != null){
+            counterpartyRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setAction1("COUNTERPARTY: " + counterparty.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
 
-            counterpartyRepository.deleteById(id);
             return true;
         }
         return false;

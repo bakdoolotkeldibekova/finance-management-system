@@ -62,13 +62,12 @@ public class ProjectServiceImpl implements ProjectService {
     public boolean deleteProjectById(Long id, String userEmail) {
         Project project = projectRepository.findById(id).orElse(null);
         if (project != null){
+            projectRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setAction1("PROJECT: " + project.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
-
-            projectRepository.deleteById(id);
             return true;
         }
         return false;

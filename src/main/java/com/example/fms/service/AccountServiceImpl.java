@@ -67,6 +67,7 @@ public class AccountServiceImpl implements AccountService {
     public boolean deleteAccountById(Long id, String userEmail) {
         Account account = accountRepository.findById(id).orElse(null);
         if (account != null){
+            accountRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setAction1("ACCOUNT: " + account.getName());
             journal.setAction2("delete");
@@ -74,7 +75,6 @@ public class AccountServiceImpl implements AccountService {
             journal.setUser(user);
             journalRepository.save(journal);
 
-            accountRepository.deleteById(id);
             return true;
         }
         return false;

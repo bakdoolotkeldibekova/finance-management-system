@@ -62,13 +62,12 @@ public class DepartmentServiceImpl implements DepartmentService{
     public boolean deleteDepartmentById(Long id, String userEmail) {
         Department department = departmentRepository.findById(id).orElse(null);
         if (department != null){
+            departmentRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setAction1("DEPARTMENT: " + department.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
-
-            departmentRepository.deleteById(id);
             return true;
         }
         return false;

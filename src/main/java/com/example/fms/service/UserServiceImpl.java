@@ -172,13 +172,13 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {
 
+            userRepository.deleteById(id);
+
             Journal journal = new Journal();
             journal.setAction1("USER: " + user.getEmail());
             journal.setAction2("delete");
             journal.setUser(null);
             journalRepository.save(journal);
-
-            userRepository.deleteById(id);
             return true;
         }
         return false;

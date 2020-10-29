@@ -72,13 +72,14 @@ public class StaffServiceImpl implements StaffService{
     public boolean deleteStaffById(Long id, String userEmail) {
         Staff staff = staffRepository.findById(id).orElse(null);
         if (staff != null){
+            staffRepository.deleteById(id);
+
             Journal journal = new Journal();
             journal.setAction1("STAFF: " + staff.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
 
-            staffRepository.deleteById(id);
             return true;
         }
         return false;
