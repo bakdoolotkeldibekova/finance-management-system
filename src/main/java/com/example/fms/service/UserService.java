@@ -25,4 +25,5 @@ public interface UserService {
     List<User> getAllByDateCreatedBetween(String after, String before);
 
     User getByEmail(String email);
+    boolean deleteUserById(Long id);
 }

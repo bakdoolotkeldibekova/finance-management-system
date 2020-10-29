@@ -156,9 +156,10 @@ public class TransactionServiceImpl implements TransactionService{
 
     @Override
     public boolean deleteTransactionById(Long id, String userEmail) {
-        if (transactionRepository.findById(id).isPresent()){
+        Transaction transaction = transactionRepository.findById(id).orElse(null);
+        if (transaction != null){
             Journal journal = new Journal(); //всее действия сохр в транзакции, только del в журнале
-            journal.setAction1("TRANSACTION");
+            journal.setAction1("TRANSACTION: " + transaction.getAction());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);

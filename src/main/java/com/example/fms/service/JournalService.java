@@ -10,4 +10,6 @@ public interface JournalService {
     List<Journal> getAllByAction1(String action);
     List<Journal> getAllByAction2(String action);
     List<Journal> getAllByUser(Long userId);
+
+    boolean deleteById(Long id);
 }

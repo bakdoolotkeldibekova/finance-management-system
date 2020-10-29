@@ -20,6 +20,11 @@ public class JournalController {
     @Autowired
     private JournalService journalService;
 
+    @DeleteMapping("/{id}")
+    public boolean deleteById(@PathVariable Long id){
+        return journalService.deleteById(id);
+    }
+
     @GetMapping("/getAll")
     public List<Journal> getAll() {
         return journalService.getAll();

@@ -27,7 +27,7 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Override
     public Department addDepartment(Department newDepartment, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("DEPARTMENT");
+        journal.setAction1("DEPARTMENT: " + newDepartment.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -50,7 +50,7 @@ public class DepartmentServiceImpl implements DepartmentService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("DEPARTMENT");
+        journal.setAction1("DEPARTMENT: " + newDepartment.getName());
         journal.setAction2("update");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -60,9 +60,10 @@ public class DepartmentServiceImpl implements DepartmentService{
 
     @Override
     public boolean deleteDepartmentById(Long id, String userEmail) {
-        if (departmentRepository.findById(id).isPresent()){
+        Department department = departmentRepository.findById(id).orElse(null);
+        if (department != null){
             Journal journal = new Journal();
-            journal.setAction1("DEPARTMENT");
+            journal.setAction1("DEPARTMENT: " + department.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);

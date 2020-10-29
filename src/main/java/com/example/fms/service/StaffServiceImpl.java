@@ -27,7 +27,7 @@ public class StaffServiceImpl implements StaffService{
     @Override
     public Staff addStaff(Staff newStaff, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("STAFF");
+        journal.setAction1("STAFF: " + newStaff.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -60,7 +60,7 @@ public class StaffServiceImpl implements StaffService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("STAFF");
+        journal.setAction1("STAFF: " + newStaff.getName());
         journal.setAction2("update");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -70,9 +70,10 @@ public class StaffServiceImpl implements StaffService{
 
     @Override
     public boolean deleteStaffById(Long id, String userEmail) {
-        if (staffRepository.findById(id).isPresent()){
+        Staff staff = staffRepository.findById(id).orElse(null);
+        if (staff != null){
             Journal journal = new Journal();
-            journal.setAction1("STAFF");
+            journal.setAction1("STAFF: " + staff.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);

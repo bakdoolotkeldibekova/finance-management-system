@@ -27,7 +27,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project addProject(Project project, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("PROJECT");
+        journal.setAction1("PROJECT: " + project.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -50,7 +50,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("PROJECT");
+        journal.setAction1("PROJECT: " + project.getName());
         journal.setAction2("update");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -60,9 +60,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public boolean deleteProjectById(Long id, String userEmail) {
-        if (projectRepository.findById(id).isPresent()){
+        Project project = projectRepository.findById(id).orElse(null);
+        if (project != null){
             Journal journal = new Journal();
-            journal.setAction1("PROJECT");
+            journal.setAction1("PROJECT: " + project.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);

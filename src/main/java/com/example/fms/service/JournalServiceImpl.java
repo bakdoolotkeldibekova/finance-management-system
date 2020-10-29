@@ -32,4 +32,13 @@ public class JournalServiceImpl implements JournalService {
     public List<Journal> getAllByUser(Long userId) {
         return journalRepository.findAllByUserId(userId);
     }
+
+    @Override
+    public boolean deleteById(Long id) {
+        if(journalRepository.findById(id).isPresent()){
+            journalRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

@@ -28,7 +28,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account create(Account newAccount, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("ACCOUNT");
+        journal.setAction1("ACCOUNT: " + newAccount.getName());
         journal.setAction2("create");
         User user = userService.getByEmail(userEmail);
         journal.setUser(user);
@@ -54,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("ACCOUNT");
+        journal.setAction1("ACCOUNT: " + newAccount.getName());
         journal.setAction2("update");
         User user = userService.getByEmail(userEmail);
         journal.setUser(user);
@@ -65,15 +65,16 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public boolean deleteAccountById(Long id, String userEmail) {
-        if (accountRepository.findById(id).isPresent()){
-            accountRepository.deleteById(id);
-
+        Account account = accountRepository.findById(id).orElse(null);
+        if (account != null){
             Journal journal = new Journal();
-            journal.setAction1("ACCOUNT");
+            journal.setAction1("ACCOUNT: " + account.getName());
             journal.setAction2("delete");
             User user = userService.getByEmail(userEmail);
             journal.setUser(user);
             journalRepository.save(journal);
+
+            accountRepository.deleteById(id);
             return true;
         }
         return false;

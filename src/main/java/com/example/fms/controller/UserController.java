@@ -5,7 +5,6 @@ import com.example.fms.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -20,6 +19,11 @@ public class UserController {
     @PutMapping("/position")
     public User setPosition(@RequestBody String position, Principal principal){
         return userService.setPosition(position, principal.getName());
+    }
+
+    @DeleteMapping("/{id}")
+    public boolean deleteByd(@PathVariable Long id){
+        return userService.deleteUserById(id);
     }
 
     @GetMapping

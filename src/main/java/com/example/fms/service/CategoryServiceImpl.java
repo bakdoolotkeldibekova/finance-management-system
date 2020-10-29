@@ -28,7 +28,7 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     public Category addCategory(Category newCategory, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("CATEGORY");
+        journal.setAction1("CATEGORY: " + newCategory.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -51,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("CATEGORY");
+        journal.setAction1("CATEGORY: " + newCategory.getName());
         journal.setAction2("update");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -61,14 +61,15 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public boolean deleteCategoryById(Long id, String userEmail) {
-        if (categoryRepository.findById(id).isPresent()){
-            categoryRepository.deleteById(id);
-
+        Category category = categoryRepository.findById(id).orElse(null);
+        if (category != null){
             Journal journal = new Journal();
-            journal.setAction1("CATEGORY");
+            journal.setAction1("CATEGORY: " + category.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
+
+            categoryRepository.deleteById(id);
             return true;
         }
         return false;

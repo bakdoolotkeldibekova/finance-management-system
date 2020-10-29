@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
             Journal journal = new Journal();
-            journal.setAction1("USER");
+            journal.setAction1("USER: " + user.getEmail());
             journal.setAction2("create");
             journal.setUser(user);
             journalRepository.save(journal);
@@ -119,10 +119,9 @@ public class UserServiceImpl implements UserService {
         if (user != null){
             user.setPassword(encoder.encode(password));
             userRepository.save(user);
-            System.out.println("eeeeeee: " + email + "  :  "+ user);
 
             Journal journal = new Journal();
-            journal.setAction1("USER");
+            journal.setAction1("USER: " + user.getEmail());
             journal.setAction2("changed password");
             journal.setUser(userRepository.findByEmail(email));
             journalRepository.save(journal);
@@ -169,6 +168,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean deleteUserById(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+
+            Journal journal = new Journal();
+            journal.setAction1("USER: " + user.getEmail());
+            journal.setAction2("delete");
+            journal.setUser(null);
+            journalRepository.save(journal);
+
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    @Override //for Init class
     public void createUser(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
         userRepository.save(user);
@@ -180,7 +196,7 @@ public class UserServiceImpl implements UserService {
         user.setPosition(position);
 
         Journal journal = new Journal();
-        journal.setAction1("USER");
+        journal.setAction1("USER: " + user.getEmail());
         journal.setAction2("changed position");
         journal.setUser(user);
         journalRepository.save(journal);

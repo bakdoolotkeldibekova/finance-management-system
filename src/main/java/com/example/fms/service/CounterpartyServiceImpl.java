@@ -27,7 +27,7 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     @Override
     public Counterparty addCounterparty(Counterparty newCounterparty, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("COUNTERPARTY");
+        journal.setAction1("COUNTERPARTY: " + newCounterparty.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -50,7 +50,7 @@ public class CounterpartyServiceImpl implements CounterpartyService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("COUNTERPARTY");
+        journal.setAction1("COUNTERPARTY: " + newCounterparty.getName());
         journal.setAction2("update");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
@@ -60,9 +60,10 @@ public class CounterpartyServiceImpl implements CounterpartyService{
 
     @Override
     public boolean deleteCounterpartyById(Long id, String userEmail) {
-        if (counterpartyRepository.findById(id).isPresent()){
+        Counterparty counterparty = counterpartyRepository.findById(id).orElse(null);
+        if (counterparty != null){
             Journal journal = new Journal();
-            journal.setAction1("COUNTERPARTY");
+            journal.setAction1("COUNTERPARTY: " + counterparty.getName());
             journal.setAction2("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journalRepository.save(journal);
