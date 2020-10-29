@@ -9,8 +9,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 //for working with jwt
 
 @Service
@@ -22,7 +20,6 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         com.example.fms.entity.User userAccount = userAccountRepository.findByEmailAndActive(email, true);
         //System.out.println(userAccount);
-        List<Role> roles = new ArrayList<>(userAccount.getRoles());
-        return new User(userAccount.getEmail(), userAccount.getPassword(), roles);
+        return new User(userAccount.getEmail(), userAccount.getPassword(), userAccount.getRoles());
     }
 }
