@@ -24,9 +24,6 @@ public class Role extends BaseEntity implements GrantedAuthority {
     @Column(name = "name", length = 50)
     private String name;
 
-//    @ManyToMany(mappedBy = "roles") оказ можно и не писать
-//    private List<User> users;
-
     @Override//for jwt
     public String getAuthority() {
         return getName();

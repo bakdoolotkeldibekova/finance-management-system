@@ -7,6 +7,7 @@ import com.example.fms.entity.Journal;
 import com.example.fms.entity.Role;
 import com.example.fms.entity.User;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.RoleRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder encoder;
     @Autowired
     private JournalRepository journalRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     public boolean save(UserRegistrDTO userRegistrDTO) {
@@ -41,7 +44,7 @@ public class UserServiceImpl implements UserService {
             Journal journal = new Journal();
             journal.setAction1("USER: " + user.getEmail());
             journal.setAction2("create");
-            journal.setUser(user);
+            journal.setUser(null);
             journalRepository.save(journal);
             return true;
         }
@@ -56,11 +59,9 @@ public class UserServiceImpl implements UserService {
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
 
-        Role role = new Role();
-        role.setName("USER");
-        List<Role> roles = new ArrayList<>();
-        roles.add(role);
-        user.setRoles(roles);
+        List<Role> roleList = new ArrayList<>();
+        roleList.add(roleRepository.save(new Role("USER")));
+        user.setRoles(roleList);
 
         String message = "Hello, ! \n" +
                 " Please, visit next link to activate your account: http:localhost:8080/registr/activate/" +
@@ -85,7 +86,7 @@ public class UserServiceImpl implements UserService {
         Role role = new Role();
         role.setName("ADMIN");
         List<Role> roles = new ArrayList<>();
-        roles.add(role);
+        roles.add(roleRepository.save(role));
         user.setRoles(roles);
 
         userRepository.save(user);
@@ -123,7 +124,7 @@ public class UserServiceImpl implements UserService {
             Journal journal = new Journal();
             journal.setAction1("USER: " + user.getEmail());
             journal.setAction2("changed password");
-            journal.setUser(userRepository.findByEmail(email));
+            journal.setUser(null);
             journalRepository.save(journal);
 
             return true;
@@ -198,7 +199,7 @@ public class UserServiceImpl implements UserService {
         Journal journal = new Journal();
         journal.setAction1("USER: " + user.getEmail());
         journal.setAction2("changed position");
-        journal.setUser(user);
+        journal.setUser(null);
         journalRepository.save(journal);
 
         return userRepository.save(user);

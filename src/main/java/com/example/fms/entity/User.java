@@ -35,10 +35,12 @@ public class User extends BaseEntity{
 //            @JoinColumn(name = "department_id") })
 //    private List<Department> departments;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", joinColumns={
-            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "role_id") })
+//    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JoinTable(name = "user_role", joinColumns={
+//            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
+//            @JoinColumn(name = "role_id") })
+    @OneToMany
+    @JoinColumn(name = "role_id")
     private List<Role> roles;
 
     @Column(name = "position")
