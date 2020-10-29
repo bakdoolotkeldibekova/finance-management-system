@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +109,7 @@ public class UserServiceImpl implements UserService {
         String message = "Hello, ! \n" +
                 " Please, visit next link to change your password: http:localhost:8080/registr/changePassword";
 
+        //System.out.println("eeeeeee: " + email + "  :  "+ user);
         return user != null && mailService.send(user.getEmail(), "Change password", message);
     }
 
@@ -116,6 +119,7 @@ public class UserServiceImpl implements UserService {
         if (user != null){
             user.setPassword(encoder.encode(password));
             userRepository.save(user);
+            System.out.println("eeeeeee: " + email + "  :  "+ user);
 
             Journal journal = new Journal();
             journal.setAction1("USER");
@@ -134,6 +138,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllByNameOrSurname(String nameOrSurname) {
+        List<User> userList = userRepository.findAllByNameContainingIgnoringCase(nameOrSurname);
+        userList.addAll(userRepository.findAllBySurnameContainingIgnoringCase(nameOrSurname));
+        return userList;
+    }
+
+    @Override
+    public List<User> getAllByPosition(String position) {
+        return userRepository.findAllByPositionContainingIgnoringCase(position);
+    }
+
+    @Override
+    public List<User> getAllByActive(boolean isActive) {
+        return userRepository.findAllByActive(isActive);
+    }
+
+    @Override
+    public List<User> getAllByDateCreatedBetween(String after, String before) {
+      //  String str = "2016-03-04 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime1 = LocalDateTime.parse(after, formatter);
+        LocalDateTime dateTime2 = LocalDateTime.parse(before, formatter);
+        return userRepository.findAllByDateCreatedBetween(dateTime1, dateTime2);
+    }
+
+    @Override
     public User getByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -142,6 +172,20 @@ public class UserServiceImpl implements UserService {
     public void createUser(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public User setPosition(String position, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        user.setPosition(position);
+
+        Journal journal = new Journal();
+        journal.setAction1("USER");
+        journal.setAction2("changed position");
+        journal.setUser(user);
+        journalRepository.save(journal);
+
+        return userRepository.save(user);
     }
 
 

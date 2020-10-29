@@ -14,9 +14,15 @@ public interface UserService {
     String activateUser(String code);
     boolean sendForgotPassword(String email);
     boolean changePassword(String email, String password);
+    void createUser(User user);
+
+    User setPosition(String position, String userEmail);
 
     List<User> getAll();
-    User getByEmail(String email);
+    List<User> getAllByNameOrSurname(String nameOrSurname);
+    List<User> getAllByPosition(String position);
+    List<User> getAllByActive(boolean isActive);
+    List<User> getAllByDateCreatedBetween(String after, String before);
 
-    void createUser(User user);
+    User getByEmail(String email);
 }

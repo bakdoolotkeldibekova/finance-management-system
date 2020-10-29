@@ -38,8 +38,8 @@ public class AuthController {
     }
 
     @PutMapping("/changePassword")
-    public boolean changePassword(@RequestBody String email, @RequestBody String password){
-        return userService.changePassword(email, password);
+    public boolean changePassword(@RequestBody UserAuthDTO userAuthDTO){
+        return userService.changePassword(userAuthDTO.getEmail(), userAuthDTO.getPassword());
     }
 
     @PostMapping("/forgotPassword") //на email юзера приходит уникальная ссылка со сроком истечения в 5 минут для изменения пароля на почту.
