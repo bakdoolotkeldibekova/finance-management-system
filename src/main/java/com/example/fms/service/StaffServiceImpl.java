@@ -1,8 +1,6 @@
 package com.example.fms.service;
 
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.Staff;
-import com.example.fms.entity.User;
+import com.example.fms.entity.*;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;

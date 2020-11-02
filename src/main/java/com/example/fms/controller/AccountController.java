@@ -1,7 +1,6 @@
 package com.example.fms.controller;
 
 import com.example.fms.entity.Account;
-import com.example.fms.entity.User;
 import com.example.fms.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 

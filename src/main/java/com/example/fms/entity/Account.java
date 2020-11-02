@@ -20,7 +20,7 @@ public class Account extends BaseEntity{
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "price")
-    private BigDecimal price;
+    @Column(name = "balance")
+    private BigDecimal balance;
 
 }

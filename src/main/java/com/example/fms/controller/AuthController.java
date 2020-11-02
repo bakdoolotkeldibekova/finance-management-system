@@ -42,8 +42,8 @@ public class AuthController {
         return userService.changePassword(userAuthDTO.getEmail(), userAuthDTO.getPassword());
     }
 
-    @PostMapping("/forgotPassword") //на email юзера приходит уникальная ссылка со сроком истечения в 5 минут для изменения пароля на почту.
-    public boolean sendForgotPassword(@RequestBody String email){
+    @PostMapping("/forgotPassword/{email}") //на email юзера приходит уникальная ссылка со сроком истечения в 5 минут для изменения пароля на почту.
+    public boolean sendForgotPassword(@PathVariable String email){
         return userService.sendForgotPassword(email);
     }
 

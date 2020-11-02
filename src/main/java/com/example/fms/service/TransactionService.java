@@ -27,7 +27,7 @@ public interface TransactionService {
 
     List<Transaction> getByAccountId(Long accountId);
 
-    List<Transaction> getByDate(LocalDateTime after, LocalDateTime before);
+    List<Transaction> getByDate(String after, String before);
 
     List<Transaction> getByCategory(Long categoryId);
 

@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.entity.Category;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.User;

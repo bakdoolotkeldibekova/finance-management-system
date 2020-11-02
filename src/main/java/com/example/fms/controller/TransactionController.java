@@ -4,12 +4,10 @@ import com.example.fms.dto.TransactionExpenseDTO;
 import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.Transaction;
-import com.example.fms.entity.User;
 import com.example.fms.service.TransactionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -62,8 +60,8 @@ public class TransactionController {
         return transactionService.getByAccountId(accountId);
     }
 
-    @GetMapping("/getByDate")
-    public List<Transaction> getByDate(@RequestBody LocalDateTime after, @RequestBody LocalDateTime before) {
+    @GetMapping("/getByDate/{after}/{before}")
+    public List<Transaction> getByDate(@PathVariable("after") String after, @PathVariable("before") String before) {
         return transactionService.getByDate(after, before);
     }
 

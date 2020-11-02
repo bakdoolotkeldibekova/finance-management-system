@@ -8,7 +8,6 @@ import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,7 +47,7 @@ public class AccountServiceImpl implements AccountService {
         Account result = accountRepository.findById(newAccount.getId())
                 .map(account -> {
                     account.setName(newAccount.getName());
-                    account.setPrice(newAccount.getPrice());
+                    account.setBalance(newAccount.getBalance());
                     return accountRepository.save(account);
                 })
                 .orElseThrow(Exception::new);

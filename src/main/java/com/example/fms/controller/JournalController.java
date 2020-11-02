@@ -30,13 +30,13 @@ public class JournalController {
         return journalService.getAll();
     }
 
-    @GetMapping("/getByAction1")
-    public List<Journal> getAllByAction1(@RequestBody String action) {
+    @GetMapping("/getByAction1/{action}")
+    public List<Journal> getAllByAction1(@PathVariable String action) {
         return journalService.getAllByAction1(action);
     }
 
-    @GetMapping("/getByAction2")
-    public List<Journal> getAllByAction2(@RequestBody String action) {
+    @GetMapping("/getByAction2/{action}")
+    public List<Journal> getAllByAction2(@PathVariable String action) {
         return journalService.getAllByAction2(action);
     }
 

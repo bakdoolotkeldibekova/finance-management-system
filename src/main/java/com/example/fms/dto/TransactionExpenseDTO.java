@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class TransactionExpenseDTO {
     private Account fromAccount;
     private Category category;
-    private BigDecimal price;
+    private BigDecimal balance;
     private Counterparty counterparty;
     private Project project;
     private String description;

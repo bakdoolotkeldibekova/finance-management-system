@@ -7,12 +7,12 @@ import com.example.fms.entity.*;
 
 import com.example.fms.repository.AccountRepository;
 import com.example.fms.repository.JournalRepository;
-import com.example.fms.repository.StaffRepository;
 import com.example.fms.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -39,14 +39,14 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setAction("INCOME");
         transaction.setCategory(transactionIncomeDTO.getCategory());
         transaction.setCounterparty(transactionIncomeDTO.getCounterparty());
-        transaction.setPrice(transactionIncomeDTO.getPrice());
+        transaction.setBalance(transactionIncomeDTO.getBalance());
         transaction.setProject(transactionIncomeDTO.getProject());
         transaction.setToAccount(transactionIncomeDTO.getToAccount());
         transaction.setDescription(transactionIncomeDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
 
         Account account = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
-        account.setPrice(account.getPrice().add(transaction.getPrice()));
+        account.setBalance(account.getBalance().add(transaction.getBalance()));
         accountRepository.save(account);
         /*
         if(transaction.getStaff() != null) {
@@ -67,14 +67,14 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setAction("EXPENSE");
         transaction.setCategory(transactionExpenseDTO.getCategory());
         transaction.setCounterparty(transactionExpenseDTO.getCounterparty());
-        transaction.setPrice(transactionExpenseDTO.getPrice());
+        transaction.setBalance(transactionExpenseDTO.getBalance());
         transaction.setProject(transactionExpenseDTO.getProject());
         transaction.setFromAccount(transactionExpenseDTO.getFromAccount());
         transaction.setDescription(transactionExpenseDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
 
         Account account = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
-        account.setPrice(account.getPrice().subtract(transaction.getPrice()));
+        account.setBalance(account.getBalance().subtract(transaction.getBalance()));
         accountRepository.save(account);
 
 //        Staff staff = transaction.getStaff();
@@ -89,16 +89,16 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setAction("REMITTANCE");
         transaction.setFromAccount(transactionRemittanceDTO.getFromAccount());
         transaction.setToAccount(transactionRemittanceDTO.getToAccount());
-        transaction.setPrice(transactionRemittanceDTO.getPrice());
+        transaction.setBalance(transactionRemittanceDTO.getBalance());
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
 
         Account accountFrom = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
-        accountFrom.setPrice(accountFrom.getPrice().subtract(transaction.getPrice()));
+        accountFrom.setBalance(accountFrom.getBalance().subtract(transaction.getBalance()));
         accountRepository.save(accountFrom);
 
         Account accountTo = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
-        accountTo.setPrice(accountTo.getPrice().add(transaction.getPrice()));
+        accountTo.setBalance(accountTo.getBalance().add(transaction.getBalance()));
         accountRepository.save(accountTo);
 
         return transactionRepository.save(transaction);
@@ -127,8 +127,12 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public List<Transaction> getByDate(LocalDateTime after, LocalDateTime before) {
-        return transactionRepository.findByDateCreatedAfterAndDateCreatedBefore(after, before);
+    public List<Transaction> getByDate(String after, String before) {
+        //String str = "2016-03-04-11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime date1 = LocalDateTime.parse(after, formatter);
+        LocalDateTime date2 = LocalDateTime.parse(before, formatter);
+        return transactionRepository.findAllByDateCreatedBetween(date1, date2);
     }
 
     @Override
@@ -144,7 +148,7 @@ public class TransactionServiceImpl implements TransactionService{
                    transaction.setFromAccount(newTransaction.getFromAccount());
                    transaction.setCategory(newTransaction.getCategory());
                    transaction.setToAccount(newTransaction.getToAccount());
-                   transaction.setPrice(newTransaction.getPrice());
+                   transaction.setBalance(newTransaction.getBalance());
                    transaction.setProject(newTransaction.getProject());
                 //   transaction.setStaff(newTransaction.getStaff());
                    transaction.setCounterparty(newTransaction.getCounterparty());

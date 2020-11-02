@@ -33,8 +33,8 @@ public class StaffController {
         return staffService.getStaffById(id);
     }
 
-    @GetMapping("/getByName")
-    public List<Staff> getByName(@RequestBody String name) {
+    @GetMapping("/getByName/{name}")
+    public List<Staff> getByName(@PathVariable("name") String name) {
         return staffService.getAllStaffByName(name);
     }
 

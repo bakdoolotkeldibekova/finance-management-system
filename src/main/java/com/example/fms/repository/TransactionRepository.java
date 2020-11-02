@@ -15,7 +15,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findAllByFromAccountId(Long accountId);
     List<Transaction> findAllByToAccountId(Long accountId);
 
-    List<Transaction> findByDateCreatedAfterAndDateCreatedBefore(LocalDateTime after, LocalDateTime before);
+    List<Transaction> findAllByDateCreatedBetween(LocalDateTime after, LocalDateTime before);
     List<Transaction> findAllByCategoryId(Long categoryId);
 
 }

@@ -33,8 +33,8 @@ public class Transaction extends BaseEntity{
     @JoinColumn(name = "to_account_id")
     private Account toAccount;
 
-    @Column(name = "price")
-    private BigDecimal price;
+    @Column(name = "balance")
+    private BigDecimal balance;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

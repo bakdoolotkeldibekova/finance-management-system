@@ -16,8 +16,8 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PutMapping("/position")
-    public User setPosition(@RequestBody String position, Principal principal){
+    @PutMapping("/position/{position}")
+    public User setPosition(@PathVariable String position, Principal principal){
         return userService.setPosition(position, principal.getName());
     }
 
@@ -31,13 +31,13 @@ public class UserController {
         return userService.getAll();
     }
 
-    @GetMapping("/active")
-    public List<User> getAllByActive(@RequestBody boolean isActive){
+    @GetMapping("/active/{isActive}")
+    public List<User> getAllByActive(@PathVariable boolean isActive){
         return userService.getAllByActive(isActive);
     }
 
-    @GetMapping("/name")
-    public List<User> getAllByNameOrSurname(@RequestBody String nameOrSurname){
+    @GetMapping("/name/{nameOrSurname}")
+    public List<User> getAllByNameOrSurname(@PathVariable String nameOrSurname){
         return userService.getAllByNameOrSurname(nameOrSurname);
     }
 
@@ -46,13 +46,13 @@ public class UserController {
         return userService.getAllByDateCreatedBetween(after, before);
     }
 
-    @GetMapping("/position")
-    public List<User> getAllByPosition(@RequestBody String position){
+    @GetMapping("/position/position")
+    public List<User> getAllByPosition(@PathVariable String position){
         return userService.getAllByPosition(position);
     }
 
-    @GetMapping("/email")
-    public User getByEmail(@RequestBody String email){ //email нужно написать точно и правильно
+    @GetMapping("/email/{email}")
+    public User getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
         return userService.getByEmail(email);
     }
 

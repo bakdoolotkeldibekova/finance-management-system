@@ -13,6 +13,6 @@ import java.math.BigDecimal;
 public class TransactionRemittanceDTO {
     private Account fromAccount;
     private Account toAccount;
-    private BigDecimal price;
+    private BigDecimal balance;
     private String description;
 }
