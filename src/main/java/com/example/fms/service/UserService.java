@@ -24,6 +24,11 @@ public interface UserService {
     List<User> getAllByActive(boolean isActive);
     List<User> getAllByDateCreatedBetween(String after, String before);
 
+    List<User> getAllByDateCreatedAfter(String after);
+    List<User> getAllByDateCreatedBefore(String before);
+    List<User> getAllByName(String name);
+    List<User> getAllBySurname(String surname);
+
     User getByEmail(String email);
     boolean deleteUserById(Long id);
 }

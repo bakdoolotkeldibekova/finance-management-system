@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllBySurnameContainingIgnoringCase(String surname);
     List<User> findAllByPositionContainingIgnoringCase(String position);
     List<User> findAllByDateCreatedBetween(LocalDateTime after, LocalDateTime before);
+    List<User> findAllByDateCreatedAfter(LocalDateTime after);
+    List<User> findAllByDateCreatedBefore(LocalDateTime before);
 }

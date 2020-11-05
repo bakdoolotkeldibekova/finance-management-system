@@ -164,6 +164,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllByDateCreatedAfter(String after) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(after, formatter);
+        return userRepository.findAllByDateCreatedAfter(dateTime);
+    }
+
+    @Override
+    public List<User> getAllByDateCreatedBefore(String before) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(before, formatter);
+        return userRepository.findAllByDateCreatedBefore(dateTime);
+    }
+
+    @Override
+    public List<User> getAllByName(String name) {
+        return userRepository.findAllByNameContainingIgnoringCase(name);
+    }
+
+    @Override
+    public List<User> getAllBySurname(String surname) {
+        return userRepository.findAllBySurnameContainingIgnoringCase(surname);
+    }
+
+    @Override
     public User getByEmail(String email) {
         return userRepository.findByEmail(email);
     }

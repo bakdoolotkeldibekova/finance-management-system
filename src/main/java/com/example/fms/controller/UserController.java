@@ -4,8 +4,12 @@ import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/user")
@@ -26,29 +30,31 @@ public class UserController {
         return userService.deleteUserById(id);
     }
 
-    @GetMapping
-    public List<User> getAll(){
-        return userService.getAll();
-    }
+    @GetMapping("/get")
+    public List<User> getAllByParam(HttpServletRequest request){
+        String name = request.getParameter("name");
+        String surname = request.getParameter("surname");
+        String isActive = request.getParameter("isActive");
+        String dateAfter = request.getParameter("dateAfter");
+        String dateBefore = request.getParameter("dateBefore");
+        String position = request.getParameter("position");
 
-    @GetMapping("/active/{isActive}")
-    public List<User> getAllByActive(@PathVariable boolean isActive){
-        return userService.getAllByActive(isActive);
-    }
+        Set<User> fooSet = new LinkedHashSet<>(userService.getAll());
 
-    @GetMapping("/name/{nameOrSurname}")
-    public List<User> getAllByNameOrSurname(@PathVariable String nameOrSurname){
-        return userService.getAllByNameOrSurname(nameOrSurname);
-    }
+        if (name != null)
+            fooSet.retainAll(userService.getAllByName(name));
+        if (surname != null)
+            fooSet.retainAll(userService.getAllBySurname(surname));
+        if (isActive != null)
+            fooSet.retainAll(userService.getAllByActive(Boolean.parseBoolean(isActive)));
+        if (dateAfter != null)
+            fooSet.retainAll(userService.getAllByDateCreatedAfter(dateAfter));
+        if (dateBefore != null)
+            fooSet.retainAll(userService.getAllByDateCreatedBefore(dateBefore));
+        if (position != null)
+            fooSet.retainAll(userService.getAllByPosition(position));
 
-    @GetMapping("/date/{after}/{before}")
-    public List<User> getAllByDateCreatedBetween(@PathVariable String after, @PathVariable String before){
-        return userService.getAllByDateCreatedBetween(after, before);
-    }
-
-    @GetMapping("/position/position")
-    public List<User> getAllByPosition(@PathVariable String position){
-        return userService.getAllByPosition(position);
+        return new ArrayList<>(fooSet);
     }
 
     @GetMapping("/email/{email}")
@@ -56,4 +62,30 @@ public class UserController {
         return userService.getByEmail(email);
     }
 
+
+
+//    @GetMapping
+//    public List<User> getAll(){
+//        return userService.getAll();
+//    }
+//
+//    @GetMapping("/active/{isActive}")
+//    public List<User> getAllByActive(@PathVariable boolean isActive){
+//        return userService.getAllByActive(isActive);
+//    }
+//
+//    @GetMapping("/name/{nameOrSurname}")
+//    public List<User> getAllByNameOrSurname(@PathVariable String nameOrSurname){
+//        return userService.getAllByNameOrSurname(nameOrSurname);
+//    }
+//
+//    @GetMapping("/date/{after}/{before}")
+//    public List<User> getAllByDateCreatedBetween(@PathVariable String after, @PathVariable String before){
+//        return userService.getAllByDateCreatedBetween(after, before);
+//    }
+//
+//    @GetMapping("/position/position")
+//    public List<User> getAllByPosition(@PathVariable String position){
+//        return userService.getAllByPosition(position);
+//    }
 }
