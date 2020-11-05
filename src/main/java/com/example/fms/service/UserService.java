@@ -19,10 +19,8 @@ public interface UserService {
     User setPosition(String position, String userEmail);
 
     List<User> getAll();
-    List<User> getAllByNameOrSurname(String nameOrSurname);
-    List<User> getAllByPosition(String position);
+     List<User> getAllByPosition(String position);
     List<User> getAllByActive(boolean isActive);
-    List<User> getAllByDateCreatedBetween(String after, String before);
 
     List<User> getAllByDateCreatedAfter(String after);
     List<User> getAllByDateCreatedBefore(String before);

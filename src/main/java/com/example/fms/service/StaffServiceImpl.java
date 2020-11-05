@@ -6,6 +6,8 @@ import com.example.fms.repository.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -81,5 +83,21 @@ public class StaffServiceImpl implements StaffService{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<Staff> getAllByDateCreatedAfter(String after) {
+        //  String str = "2016-03-04 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(after, formatter);
+        return staffRepository.findAllByDateCreatedAfter(dateTime);
+    }
+
+    @Override
+    public List<Staff> getAllByDateCreatedBefore(String before) {
+        //  String str = "2016-03-04 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(before, formatter);
+        return staffRepository.findAllByDateCreatedBefore(dateTime);
     }
 }

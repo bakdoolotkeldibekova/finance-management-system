@@ -12,4 +12,7 @@ public interface StaffService {
     List<Staff> getAllStaffByName(String name);
     Staff updateStaffById (Staff newStaff, String userEmail) throws Exception;
     boolean deleteStaffById(Long id, String userEmail);
+
+    List<Staff> getAllByDateCreatedAfter(String after);
+    List<Staff> getAllByDateCreatedBefore(String before);
 }

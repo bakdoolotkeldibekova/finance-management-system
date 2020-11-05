@@ -11,5 +11,8 @@ public interface JournalService {
     List<Journal> getAllByAction2(String action);
     List<Journal> getAllByUser(Long userId);
 
+    List<Journal> getAllByDateCreatedAfter(String after);
+    List<Journal> getAllByDateCreatedBefore(String before);
+
     boolean deleteById(Long id);
 }

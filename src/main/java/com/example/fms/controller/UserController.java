@@ -62,30 +62,4 @@ public class UserController {
         return userService.getByEmail(email);
     }
 
-
-
-//    @GetMapping
-//    public List<User> getAll(){
-//        return userService.getAll();
-//    }
-//
-//    @GetMapping("/active/{isActive}")
-//    public List<User> getAllByActive(@PathVariable boolean isActive){
-//        return userService.getAllByActive(isActive);
-//    }
-//
-//    @GetMapping("/name/{nameOrSurname}")
-//    public List<User> getAllByNameOrSurname(@PathVariable String nameOrSurname){
-//        return userService.getAllByNameOrSurname(nameOrSurname);
-//    }
-//
-//    @GetMapping("/date/{after}/{before}")
-//    public List<User> getAllByDateCreatedBetween(@PathVariable String after, @PathVariable String before){
-//        return userService.getAllByDateCreatedBetween(after, before);
-//    }
-//
-//    @GetMapping("/position/position")
-//    public List<User> getAllByPosition(@PathVariable String position){
-//        return userService.getAllByPosition(position);
-//    }
 }

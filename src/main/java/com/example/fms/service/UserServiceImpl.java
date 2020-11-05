@@ -138,13 +138,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllByNameOrSurname(String nameOrSurname) {
-        List<User> userList = userRepository.findAllByNameContainingIgnoringCase(nameOrSurname);
-        userList.addAll(userRepository.findAllBySurnameContainingIgnoringCase(nameOrSurname));
-        return userList;
-    }
-
-    @Override
     public List<User> getAllByPosition(String position) {
         return userRepository.findAllByPositionContainingIgnoringCase(position);
     }
@@ -155,16 +148,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllByDateCreatedBetween(String after, String before) {
-      //  String str = "2016-03-04 11:30";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        LocalDateTime dateTime1 = LocalDateTime.parse(after, formatter);
-        LocalDateTime dateTime2 = LocalDateTime.parse(before, formatter);
-        return userRepository.findAllByDateCreatedBetween(dateTime1, dateTime2);
-    }
-
-    @Override
     public List<User> getAllByDateCreatedAfter(String after) {
+        //  String str = "2016-03-04 11:30";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(after, formatter);
         return userRepository.findAllByDateCreatedAfter(dateTime);
@@ -172,6 +157,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllByDateCreatedBefore(String before) {
+        //  String str = "2016-03-04 11:30";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(before, formatter);
         return userRepository.findAllByDateCreatedBefore(dateTime);
