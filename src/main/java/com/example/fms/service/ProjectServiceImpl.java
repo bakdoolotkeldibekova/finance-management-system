@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.entity.Department;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.Project;
 import com.example.fms.entity.User;
@@ -8,6 +9,8 @@ import com.example.fms.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -22,6 +25,22 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> getAll() {
         return projectRepository.findAll();
+    }
+
+    @Override
+    public List<Project> getAllByNameContaining(String name) {
+        return projectRepository.findAllByNameContaining(name);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Project> getAllByDateCreatedBefore(String before) {
+        return projectRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
+    }
+
+    @Override
+    public List<Project> getAllByDateCreatedAfter(String after) {
+        return projectRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
     }
 
     @Override

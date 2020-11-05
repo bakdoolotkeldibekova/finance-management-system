@@ -8,6 +8,9 @@ import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -22,6 +25,32 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<Account> getAll() {
         return accountRepository.findAll();
+    }
+
+    @Override
+    public List<Account> getAllByName(String name) {
+        return accountRepository.findAllByNameContainingIgnoringCase(name);
+    }
+
+    @Override
+    public List<Account> getAllByBalanceLessThan(BigDecimal balance) {
+        return accountRepository.findAllByBalanceLessThanEqual(balance);
+    }
+
+    @Override
+    public List<Account> getAllByBalanceGreaterThan(BigDecimal balance) {
+        return accountRepository.findAllByBalanceGreaterThanEqual(balance);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Account> getAllByDateCreatedBefore(String before) {
+        return accountRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
+    }
+
+    @Override
+    public List<Account> getAllByDateCreatedAfter(String after) {
+        return accountRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
     }
 
     @Override

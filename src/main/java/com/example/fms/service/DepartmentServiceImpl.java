@@ -8,6 +8,8 @@ import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -22,6 +24,22 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Override
     public List<Department> getAll() {
         return departmentRepository.findAll();
+    }
+
+    @Override
+    public List<Department> getAllByNameContaining(String name) {
+        return departmentRepository.findAllByNameContaining(name);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Department> getAllByDateCreatedBefore(String before) {
+        return departmentRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
+    }
+
+    @Override
+    public List<Department> getAllByDateCreatedAfter(String after) {
+        return departmentRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
     }
 
     @Override

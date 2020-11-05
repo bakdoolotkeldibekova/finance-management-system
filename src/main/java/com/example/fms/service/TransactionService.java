@@ -4,9 +4,8 @@ import com.example.fms.dto.TransactionExpenseDTO;
 import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.Transaction;
-import com.example.fms.entity.User;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface TransactionService {
@@ -21,17 +20,26 @@ public interface TransactionService {
 
     Transaction getTransactionById (Long id) throws Exception;
 
-    List<Transaction> getByAction(String action);
+    List<Transaction> getAllByAction(String action);
 
-    List<Transaction> getByUserId(Long userId);
+    List<Transaction> getAllByUserId(Long userId);
 
-    List<Transaction> getByAccountId(Long accountId);
+    List<Transaction> getAllByFromAccount(Long accountId);
 
-    List<Transaction> getByDate(String after, String before);
+    List<Transaction> getAllByToAccount(Long accountId);
 
-    List<Transaction> getByCategory(Long categoryId);
+    List<Transaction> getAllByCategory(Long categoryId);
 
-    Transaction updateTransactionById(Transaction newTransaction, String userEmail) throws Exception;
+    List<Transaction> getAllByBalanceGreaterThanEqual(BigDecimal balance);
+    List<Transaction> getAllByBalanceLessThanEqual(BigDecimal balance);
+    List<Transaction> getAllByDateCreatedAfter(String after);
+    List<Transaction> getAllByDateCreatedBefore(String before);
+    List<Transaction> getAllByProject(Long projectId);
+    List<Transaction> getAllByCounterparty(Long counterpartyId);
+
+    Transaction updateIncomeById(TransactionIncomeDTO newTransaction, String userEmail) throws Exception;
+    Transaction updateExpenseById(TransactionExpenseDTO newTransaction, String userEmail) throws Exception;
+    Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, String userEmail) throws Exception;
 
     boolean deleteTransactionById (Long id, String userEmail);
 }

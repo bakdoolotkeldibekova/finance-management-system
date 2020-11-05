@@ -1,12 +1,17 @@
 package com.example.fms.controller;
 
+import com.example.fms.entity.Category;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.User;
 import com.example.fms.service.DepartmentService;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/department")
@@ -18,9 +23,22 @@ public class DepartmentController {
         this.departmentService = service;
     }
 
-    @GetMapping("/getAll")
-    public List<Department> getAll() {
-        return departmentService.getAll();
+    @GetMapping("/get")
+    public List<Department> getAllByParam(HttpServletRequest request) {
+        String name = request.getParameter("name");
+        String dateAfter = request.getParameter("dateAfter");
+        String dateBefore = request.getParameter("dateBefore");
+
+        Set<Department> fooSet = new LinkedHashSet<>(departmentService.getAll());
+
+        if (name != null)
+            fooSet.retainAll(departmentService.getAllByNameContaining(name));
+        if (dateAfter != null)
+            fooSet.retainAll(departmentService.getAllByDateCreatedAfter(dateAfter));
+        if (dateBefore != null)
+            fooSet.retainAll(departmentService.getAllByDateCreatedBefore(dateBefore));
+
+        return new ArrayList<>(fooSet);
     }
 
     @PostMapping("/add")

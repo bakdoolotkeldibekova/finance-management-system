@@ -1,6 +1,8 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.*;
+import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,6 +21,8 @@ public class StaffServiceImpl implements StaffService{
     private JournalRepository journalRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Override
     public List<Staff> getAll() {
@@ -25,14 +30,26 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public Staff addStaff(Staff newStaff, String userEmail) {
+    public Staff addStaff(StaffDTO newStaff, String userEmail) throws Exception{
+        Staff staff = new Staff();
+        staff.setName(newStaff.getName());
+        staff.setPosition(newStaff.getPosition());
+        staff.setSalary(newStaff.getSalary());
+        staff.setDate(newStaff.getDate());
+        staff.setSalary(newStaff.getSalary());
+        List<Department> dep = new ArrayList<>();
+        for (Long item : newStaff.getDepartments()) {
+            dep.add(departmentRepository.findById(item).orElseThrow(Exception::new));
+        }
+        staff.setDepartments(dep);
+
         Journal journal = new Journal();
         journal.setAction1("STAFF: " + newStaff.getName());
         journal.setAction2("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
 
-        return staffRepository.save(newStaff);
+        return staffRepository.save(staff);
     }
 
     @Override
@@ -46,11 +63,16 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public Staff updateStaffById(Staff newStaff, String userEmail) throws Exception {
+    public Staff updateStaffById(StaffDTO newStaff, String userEmail) throws Exception {
+
+        List<Department> dep = new ArrayList<>();
+        for (Long item : newStaff.getDepartments()) {
+            dep.add(departmentRepository.findById(item).orElseThrow(Exception::new));
+        }
         Staff result = staffRepository.findById(newStaff.getId())
                 .map(staff -> {
                     staff.setName(newStaff.getName());
-                    staff.setDepartments(newStaff.getDepartments());
+                    staff.setDepartments(dep);
                     staff.setPosition(newStaff.getPosition());
                     staff.setSalary(newStaff.getSalary());
                     staff.setDate(newStaff.getDate());

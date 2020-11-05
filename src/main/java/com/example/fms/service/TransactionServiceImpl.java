@@ -5,12 +5,11 @@ import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.*;
 
-import com.example.fms.repository.AccountRepository;
-import com.example.fms.repository.JournalRepository;
-import com.example.fms.repository.TransactionRepository;
+import com.example.fms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,12 +20,18 @@ public class TransactionServiceImpl implements TransactionService{
     private TransactionRepository transactionRepository;
     @Autowired
     private AccountRepository accountRepository;
-//    @Autowired
-//    private StaffRepository staffRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
     @Autowired
     private UserService userService;
     @Autowired
     private JournalRepository journalRepository;
+    @Autowired
+    private CounterpartyRepository counterpartyRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<Transaction> getAll() {
@@ -37,27 +42,17 @@ public class TransactionServiceImpl implements TransactionService{
     public Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) throws Exception {
         Transaction transaction = new Transaction();
         transaction.setAction("INCOME");
-        transaction.setCategory(transactionIncomeDTO.getCategory());
-        transaction.setCounterparty(transactionIncomeDTO.getCounterparty());
+        transaction.setCategory(categoryRepository.findById(transactionIncomeDTO.getCategory()).orElseThrow(Exception::new));
+        transaction.setCounterparty(counterpartyRepository.findById(transactionIncomeDTO.getCounterparty()).orElseThrow(Exception::new));
         transaction.setBalance(transactionIncomeDTO.getBalance());
-        transaction.setProject(transactionIncomeDTO.getProject());
-        transaction.setToAccount(transactionIncomeDTO.getToAccount());
+        transaction.setProject(projectRepository.findById(transactionIncomeDTO.getProject()).orElseThrow(Exception::new));
+        transaction.setToAccount(accountRepository.findById(transactionIncomeDTO.getToAccount()).orElseThrow(Exception::new));
         transaction.setDescription(transactionIncomeDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
 
         Account account = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
         account.setBalance(account.getBalance().add(transaction.getBalance()));
         accountRepository.save(account);
-        /*
-        if(transaction.getStaff() != null) {
-            List<Staff> staffList = transaction.getStaff();
-            for (Staff item:staffList) {
-                Staff newStaff = staffRepository.findById(item.getId()).orElseThrow(Exception::new);
-                newStaff.setAccepted(newStaff.getAccepted().subtract(transaction.getPrice()));
-                staffRepository.save(newStaff);
-            }
-        }
-        */
         return transactionRepository.save(transaction);
     }
 
@@ -65,21 +60,22 @@ public class TransactionServiceImpl implements TransactionService{
     public Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail) throws Exception {
         Transaction transaction = new Transaction();
         transaction.setAction("EXPENSE");
-        transaction.setCategory(transactionExpenseDTO.getCategory());
-        transaction.setCounterparty(transactionExpenseDTO.getCounterparty());
+        transaction.setCategory(categoryRepository.findById(transactionExpenseDTO.getCategory()).orElseThrow(Exception::new));
+        transaction.setCounterparty(counterpartyRepository.findById(transactionExpenseDTO.getCounterparty()).orElseThrow(Exception::new));
         transaction.setBalance(transactionExpenseDTO.getBalance());
-        transaction.setProject(transactionExpenseDTO.getProject());
-        transaction.setFromAccount(transactionExpenseDTO.getFromAccount());
+        transaction.setProject(projectRepository.findById(transactionExpenseDTO.getProject()).orElseThrow(Exception::new));
+        transaction.setFromAccount(accountRepository.findById(transactionExpenseDTO.getFromAccount()).orElseThrow(Exception::new));
         transaction.setDescription(transactionExpenseDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
 
         Account account = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
-        account.setBalance(account.getBalance().subtract(transaction.getBalance()));
-        accountRepository.save(account);
+        if (BigDecimal.ZERO.compareTo(account.getBalance().subtract(transaction.getBalance())) == 1) {
+            throw new NotEnoughBalanceException("Not enough balance in account!");
+        } else {
+            account.setBalance(account.getBalance().subtract(transaction.getBalance()));
+        }
 
-//        Staff staff = transaction.getStaff();
-//        staff.setAccepted(staff.getAccepted().subtract(transaction.getPrice()));
-//        staffRepository.save(staff);
+        accountRepository.save(account);
 
         return transactionRepository.save(transaction);
     }
@@ -87,8 +83,8 @@ public class TransactionServiceImpl implements TransactionService{
     public Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail) throws Exception {
         Transaction transaction = new Transaction();
         transaction.setAction("REMITTANCE");
-        transaction.setFromAccount(transactionRemittanceDTO.getFromAccount());
-        transaction.setToAccount(transactionRemittanceDTO.getToAccount());
+        transaction.setFromAccount(accountRepository.findById(transactionRemittanceDTO.getFromAccount()).orElseThrow(Exception::new));
+        transaction.setToAccount(accountRepository.findById(transactionRemittanceDTO.getToAccount()).orElseThrow(Exception::new));
         transaction.setBalance(transactionRemittanceDTO.getBalance());
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
@@ -110,52 +106,115 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public List<Transaction> getByAction(String action) {
+    public List<Transaction> getAllByAction(String action) {
         return transactionRepository.findAllByActionContainingIgnoringCase(action);
     }
 
     @Override
-    public List<Transaction> getByUserId(Long userId) {
+    public List<Transaction> getAllByUserId(Long userId) {
         return transactionRepository.findAllByUserId(userId);
     }
 
     @Override
-    public List<Transaction> getByAccountId(Long accountId) {
-        List<Transaction> transactionList = transactionRepository.findAllByFromAccountId(accountId);
-        transactionList.addAll(transactionRepository.findAllByToAccountId(accountId));
-        return transactionList;
+    public List<Transaction> getAllByFromAccount(Long accountId) {
+        return transactionRepository.findAllByFromAccountId(accountId);
     }
 
     @Override
-    public List<Transaction> getByDate(String after, String before) {
-        //String str = "2016-03-04-11:30";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        LocalDateTime date1 = LocalDateTime.parse(after, formatter);
-        LocalDateTime date2 = LocalDateTime.parse(before, formatter);
-        return transactionRepository.findAllByDateCreatedBetween(date1, date2);
+    public List<Transaction> getAllByToAccount(Long accountId) {
+        return transactionRepository.findAllByToAccountId(accountId);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Transaction> getAllByDateCreatedAfter(String after) {
+        return transactionRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
     }
 
     @Override
-    public List<Transaction> getByCategory(Long categoryId) {
+    public List<Transaction> getAllByDateCreatedBefore(String before) {
+        return transactionRepository.findAllByDateCreatedAfter(LocalDateTime.parse(before, formatter));
+    }
+
+    @Override
+    public List<Transaction> getAllByProject(Long projectId) {
+        return transactionRepository.findAllByProjectId(projectId);
+    }
+
+    @Override
+    public List<Transaction> getAllByCounterparty(Long counterpartyId) {
+        return transactionRepository.findAllByCounterpartyId(counterpartyId);
+    }
+
+    @Override
+    public List<Transaction> getAllByCategory(Long categoryId) {
         return transactionRepository.findAllByCategoryId(categoryId);
     }
 
     @Override
-    public Transaction updateTransactionById(Transaction newTransaction, String userEmail) throws Exception {
-       return transactionRepository.findById(newTransaction.getId())
-               .map(transaction -> {
-                   transaction.setAction(newTransaction.getAction());
-                   transaction.setFromAccount(newTransaction.getFromAccount());
-                   transaction.setCategory(newTransaction.getCategory());
-                   transaction.setToAccount(newTransaction.getToAccount());
-                   transaction.setBalance(newTransaction.getBalance());
-                   transaction.setProject(newTransaction.getProject());
-                //   transaction.setStaff(newTransaction.getStaff());
-                   transaction.setCounterparty(newTransaction.getCounterparty());
-                   transaction.setDescription(newTransaction.getDescription());
-                   transaction.setUser(userService.getByEmail(userEmail));
-                   return transactionRepository.save(transaction);
-               }).orElseThrow(Exception::new);
+    public List<Transaction> getAllByBalanceGreaterThanEqual(BigDecimal balance) {
+        return transactionRepository.findAllByBalanceGreaterThanEqual(balance);
+    }
+
+    @Override
+    public List<Transaction> getAllByBalanceLessThanEqual(BigDecimal balance) {
+        return transactionRepository.findAllByBalanceLessThanEqual(balance);
+    }
+
+    @Override
+    public Transaction updateIncomeById(TransactionIncomeDTO newTransaction, String userEmail) throws Exception {
+        Account toAccount = accountRepository.findById(newTransaction.getToAccount()).orElseThrow(Exception::new);
+        Category category = categoryRepository.findById(newTransaction.getCategory()).orElseThrow(Exception::new);
+        Project project = projectRepository.findById(newTransaction.getProject()).orElseThrow(Exception::new);
+        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElseThrow(Exception::new);
+        Transaction result = transactionRepository.findById(newTransaction.getId())
+                .map(transaction -> {
+                    transaction.setCategory(category);
+                    transaction.setToAccount(toAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setProject(project);
+                    transaction.setCounterparty(counterparty);
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    return transactionRepository.save(transaction);
+                }).orElseThrow(Exception::new);
+        return result;
+    }
+
+    @Override
+    public Transaction updateExpenseById(TransactionExpenseDTO newTransaction, String userEmail) throws Exception {
+        Account fromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElseThrow(Exception::new);
+        Category category = categoryRepository.findById(newTransaction.getCategory()).orElseThrow(Exception::new);
+        Project project = projectRepository.findById(newTransaction.getProject()).orElseThrow(Exception::new);
+        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElseThrow(Exception::new);
+        Transaction result = transactionRepository.findById(newTransaction.getId())
+                .map(transaction -> {
+                    transaction.setCategory(category);
+                    transaction.setToAccount(fromAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setProject(project);
+                    transaction.setCounterparty(counterparty);
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    return transactionRepository.save(transaction);
+                }).orElseThrow(Exception::new);
+        return result;
+    }
+
+    @Override
+    public Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, String userEmail) throws Exception {
+        Account fromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElseThrow(Exception::new);
+        Account toAccount = accountRepository.findById(newTransaction.getToAccount()).orElseThrow(Exception::new);
+        Transaction result = transactionRepository.findById(newTransaction.getId())
+                .map(transaction -> {
+                    transaction.setFromAccount(fromAccount);
+                    transaction.setToAccount(toAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    return transactionRepository.save(transaction);
+                }).orElseThrow(Exception::new);
+        return result;
     }
 
     @Override

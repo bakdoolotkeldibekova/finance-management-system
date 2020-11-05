@@ -1,12 +1,15 @@
 package com.example.fms.controller;
 
 import com.example.fms.entity.Category;
-import com.example.fms.entity.User;
 import com.example.fms.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/category")
@@ -18,9 +21,22 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/getAll")
-    public List<Category> getAll() {
-        return categoryService.getAll();
+    @GetMapping("/get")
+    public List<Category> getAllByParam(HttpServletRequest request) {
+        String name = request.getParameter("name");
+        String dateAfter = request.getParameter("dateAfter");
+        String dateBefore = request.getParameter("dateBefore");
+
+        Set<Category> fooSet = new LinkedHashSet<>(categoryService.getAll());
+
+        if (name != null)
+            fooSet.retainAll(categoryService.getAllByNameContaining(name));
+        if (dateAfter != null)
+            fooSet.retainAll(categoryService.getAllByDateCreatedAfter(dateAfter));
+        if (dateBefore != null)
+            fooSet.retainAll(categoryService.getAllByDateCreatedBefore(dateBefore));
+
+        return new ArrayList<>(fooSet);
     }
 
     @PostMapping("/add")

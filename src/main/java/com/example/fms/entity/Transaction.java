@@ -44,9 +44,9 @@ public class Transaction extends BaseEntity{
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @ManyToOne
-    @JoinColumn(name = "staff_id")
-    private Staff staff;      //используется только для выдачи зарплат
+//    @ManyToOne
+//    @JoinColumn(name = "staff_id")
+//    private Staff staff;      //используется только для выдачи зарплат
 
     @ManyToOne
     @JoinColumn(name = "counterparty_id")

@@ -14,10 +14,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionIncomeDTO {
-    private Account toAccount;
-    private Category category;
+    private Long id;
+    private Long toAccount;
+    private Long category;
     private BigDecimal balance;
-    private Counterparty counterparty;
-    private Project project;
+    private Long counterparty;
+    private Long project;
     private String description;
 }

@@ -2,13 +2,13 @@ package com.example.fms.service;
 
 import com.example.fms.entity.Category;
 import com.example.fms.entity.Journal;
-import com.example.fms.entity.User;
 import com.example.fms.repository.CategoryRepository;
 import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -23,6 +23,22 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     public List<Category> getAll() {
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public List<Category> getAllByNameContaining(String name) {
+        return categoryRepository.findAllByNameContaining(name);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Category> getAllByDateCreatedAfter(String after) {
+        return categoryRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
+    }
+
+    @Override
+    public List<Category> getAllByDateCreatedBefore(String before) {
+        return categoryRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
     }
 
     @Override

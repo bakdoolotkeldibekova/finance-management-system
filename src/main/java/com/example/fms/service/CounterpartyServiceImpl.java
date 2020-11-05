@@ -1,14 +1,14 @@
 package com.example.fms.service;
 
-import com.example.fms.entity.Category;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Journal;
-import com.example.fms.entity.User;
 import com.example.fms.repository.CounterpartyRepository;
 import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -23,6 +23,22 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     @Override
     public List<Counterparty> getAll() {
         return counterpartyRepository.findAll();
+    }
+
+    @Override
+    public List<Counterparty> getAllByNameContaining(String name) {
+        return counterpartyRepository.findAllByNameContaining(name);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    @Override
+    public List<Counterparty> getAllByDateCreatedBefore(String before) {
+        return counterpartyRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
+    }
+
+    @Override
+    public List<Counterparty> getAllByDateCreatedAfter(String after) {
+        return counterpartyRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
     }
 
     @Override

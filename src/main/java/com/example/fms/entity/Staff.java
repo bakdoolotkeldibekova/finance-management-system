@@ -17,15 +17,15 @@ import java.util.Locale;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "staff")
-public class Staff extends BaseEntity{
+public class Staff extends BaseEntity {
 
 	@Column(name = "name", nullable = false)
 	private String name;
 
 	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "staff_department", joinColumns={
-			@JoinColumn(name = "staff_id") }, inverseJoinColumns = {
-			@JoinColumn(name = "department_id") })
+	@JoinTable(name = "staff_department", joinColumns = {
+			@JoinColumn(name = "staff_id")}, inverseJoinColumns = {
+			@JoinColumn(name = "department_id")})
 	private List<Department> departments;
 
 	@Column(name = "position")
@@ -35,8 +35,9 @@ public class Staff extends BaseEntity{
 	private BigDecimal salary;
 
 	@Column(name = "date")
-	private Locale date;	//Дата начала работы сотрудника
+	private Locale date;    //Дата начала работы сотрудника
 
 	@Column(name = "accepted")
 	private BigDecimal accepted;
+
 }

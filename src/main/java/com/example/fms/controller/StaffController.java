@@ -1,8 +1,7 @@
 package com.example.fms.controller;
 
-import com.example.fms.entity.Journal;
+import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.Staff;
-import com.example.fms.entity.User;
 import com.example.fms.service.StaffService;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,12 +22,12 @@ public class StaffController {
     }
 
     @PostMapping("/add")
-    public Staff addStaff(@RequestBody Staff newStaff, Principal principal) {
+    public Staff addStaff(@RequestBody StaffDTO newStaff, Principal principal) throws Exception{
         return staffService.addStaff(newStaff, principal.getName());
     }
 
     @PutMapping("/update")
-    public Staff updateStaff (@RequestBody Staff newStaff, Principal principal) throws Exception {
+    public Staff updateStaff (@RequestBody StaffDTO newStaff, Principal principal) throws Exception {
         return staffService.updateStaffById(newStaff, principal.getName());
     }
 
@@ -38,7 +37,7 @@ public class StaffController {
     }
 
     @GetMapping("/{id}")
-    public Object getStaff(@PathVariable Long id) throws Exception{
+    public Staff getStaff(@PathVariable Long id) throws Exception{
         return staffService.getStaffById(id);
     }
 
