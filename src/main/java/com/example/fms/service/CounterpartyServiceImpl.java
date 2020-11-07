@@ -27,7 +27,7 @@ public class CounterpartyServiceImpl implements CounterpartyService{
 
     @Override
     public List<Counterparty> getAllByNameContaining(String name) {
-        return counterpartyRepository.findAllByNameContaining(name);
+        return counterpartyRepository.findAllByNameContainingIgnoringCase(name);
     }
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

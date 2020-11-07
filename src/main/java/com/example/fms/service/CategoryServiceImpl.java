@@ -27,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public List<Category> getAllByNameContaining(String name) {
-        return categoryRepository.findAllByNameContaining(name);
+        return categoryRepository.findAllByNameContainingIgnoringCase(name);
     }
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

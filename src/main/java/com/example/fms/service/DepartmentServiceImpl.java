@@ -28,7 +28,7 @@ public class DepartmentServiceImpl implements DepartmentService{
 
     @Override
     public List<Department> getAllByNameContaining(String name) {
-        return departmentRepository.findAllByNameContaining(name);
+        return departmentRepository.findAllByNameContainingIgnoringCase(name);
     }
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

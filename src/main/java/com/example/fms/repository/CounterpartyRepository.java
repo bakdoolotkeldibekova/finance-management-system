@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface CounterpartyRepository extends JpaRepository<Counterparty, Long> {
-    List<Counterparty> findAllByNameContaining(String name);
+    List<Counterparty> findAllByNameContainingIgnoringCase(String name);
     List<Counterparty> findAllByDateCreatedBefore(LocalDateTime before);
     List<Counterparty> findAllByDateCreatedAfter(LocalDateTime after);
 }

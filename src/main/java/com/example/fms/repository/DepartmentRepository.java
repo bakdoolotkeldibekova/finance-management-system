@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
-    List<Department> findAllByNameContaining(String name);
+    List<Department> findAllByNameContainingIgnoringCase(String name);
     List<Department> findAllByDateCreatedAfter(LocalDateTime after);
     List<Department> findAllByDateCreatedBefore(LocalDateTime before);
 }

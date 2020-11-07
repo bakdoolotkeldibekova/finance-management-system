@@ -29,7 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<Project> getAllByNameContaining(String name) {
-        return projectRepository.findAllByNameContaining(name);
+        return projectRepository.findAllByNameContainingIgnoringCase(name);
     }
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
