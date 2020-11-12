@@ -1,5 +1,6 @@
 package com.example.fms.controller;
 
+import com.example.fms.dto.UserDTO;
 import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,11 @@ public class UserController {
 
     UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @PostMapping("/user")
+    public boolean createUser(@RequestBody UserDTO userDTO){
+        return userService.createUser(userDTO);
     }
 
     @PutMapping("/position/{position}")

@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
         user.setActivationCode(UUID.randomUUID().toString());
 
         List<Role> roleList = new ArrayList<>();
-        roleList.add(roleRepository.save(new Role("USER")));
+        roleList.add(roleRepository.findById(2L).orElse(null));
         user.setRoles(roleList);
 
         String message = "Hello, ! \n" +
@@ -84,10 +84,9 @@ public class UserServiceImpl implements UserService {
         user.setPosition(userAdminDTO.getPosition());
         user.setActive(true);
 
-        Role role = new Role();
-        role.setName("ADMIN");
+
         List<Role> roles = new ArrayList<>();
-        roles.add(roleRepository.save(role));
+        roles.add(roleRepository.findById(1L).orElse(null));
         user.setRoles(roles);
 
         userRepository.save(user);

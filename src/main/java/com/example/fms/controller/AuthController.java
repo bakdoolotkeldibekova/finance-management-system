@@ -22,11 +22,6 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/user")
-    public boolean createUser(@RequestBody UserDTO userDTO){
-        return userService.createUser(userDTO);
-    }
-
     @GetMapping("/activate/{code}")
     public String  activate(@PathVariable String code) {
         return userService.activateUser(code);
