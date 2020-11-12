@@ -3,8 +3,10 @@ package com.example.fms.controller;
 import com.example.fms.dto.TransactionExpenseDTO;
 import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
+import com.example.fms.entity.Role;
 import com.example.fms.entity.Transaction;
 import com.example.fms.service.TransactionService;
+import com.example.fms.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,9 +22,11 @@ import java.util.Set;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final UserService userService;
 
-    TransactionController(TransactionService transactionService) {
+    TransactionController(TransactionService transactionService, UserService userService) {
         this.transactionService = transactionService;
+        this.userService = userService;
     }
 
     @GetMapping("/{id}")
@@ -31,7 +35,14 @@ public class TransactionController {
     }
 
     @GetMapping("/get")
-    public List<Transaction> getAllByParam(HttpServletRequest request) {
+    public List<Transaction> getAllByParam(HttpServletRequest request, Principal principal) {
+        String email = principal.getName();
+        boolean isAdmin = false;
+        for (Role item : userService.getByEmail(email).getRoles()) {
+            if (item.getName().equalsIgnoreCase("ADMIN")) {
+                isAdmin = true; break;
+            }
+        }
         String action = request.getParameter("action");
         String fromAccount = request.getParameter("fromAccount");
         String category = request.getParameter("category");
@@ -44,7 +55,11 @@ public class TransactionController {
         String dateAfter = request.getParameter("dateAfter");
         String dateBefore = request.getParameter("dateBefore");
 
-        Set<Transaction> fooSet = new LinkedHashSet<>(transactionService.getAll());
+        Set<Transaction> fooSet;
+        if (isAdmin)
+            fooSet = new LinkedHashSet<>(transactionService.getAllForAdmin());
+        else
+            fooSet = new LinkedHashSet<>(transactionService.getAllForUser());
 
         if (action != null)
             fooSet.retainAll(transactionService.getAllByAction(action));

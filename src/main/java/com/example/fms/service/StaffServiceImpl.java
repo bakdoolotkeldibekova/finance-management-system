@@ -44,9 +44,10 @@ public class StaffServiceImpl implements StaffService{
         staff.setDepartments(dep);
 
         Journal journal = new Journal();
-        journal.setAction1("STAFF: " + newStaff.getName());
-        journal.setAction2("create");
+        journal.setTable("STAFF: " + newStaff.getName());
+        journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return staffRepository.save(staff);
@@ -82,9 +83,10 @@ public class StaffServiceImpl implements StaffService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("STAFF: " + newStaff.getName());
-        journal.setAction2("update");
+        journal.setTable("STAFF: " + newStaff.getName());
+        journal.setAction("update");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return result;
@@ -97,9 +99,10 @@ public class StaffServiceImpl implements StaffService{
             staffRepository.deleteById(id);
 
             Journal journal = new Journal();
-            journal.setAction1("STAFF: " + staff.getName());
-            journal.setAction2("delete");
+            journal.setTable("STAFF: " + staff.getName());
+            journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
             journalRepository.save(journal);
 
             return true;

@@ -10,7 +10,8 @@ import java.util.List;
 
 public interface TransactionService {
 
-    List<Transaction> getAll();
+    List<Transaction> getAllForAdmin();
+    List<Transaction> getAllForUser();
 
     Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) throws Exception;
 

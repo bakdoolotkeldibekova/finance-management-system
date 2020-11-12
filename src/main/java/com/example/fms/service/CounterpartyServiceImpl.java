@@ -44,10 +44,11 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     @Override
     public Counterparty addCounterparty(Counterparty newCounterparty, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("COUNTERPARTY: " + newCounterparty.getName());
-        journal.setAction2("create");
+        journal.setTable("COUNTERPARTY: " + newCounterparty.getName());
+        journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
         journalRepository.save(journal);
+        journal.setDeleted(false);
         return counterpartyRepository.save(newCounterparty);
     }
 
@@ -67,9 +68,10 @@ public class CounterpartyServiceImpl implements CounterpartyService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("COUNTERPARTY: " + newCounterparty.getName());
-        journal.setAction2("update");
+        journal.setTable("COUNTERPARTY: " + newCounterparty.getName());
+        journal.setAction("update");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return result;
@@ -81,9 +83,10 @@ public class CounterpartyServiceImpl implements CounterpartyService{
         if (counterparty != null){
             counterpartyRepository.deleteById(id);
             Journal journal = new Journal();
-            journal.setAction1("COUNTERPARTY: " + counterparty.getName());
-            journal.setAction2("delete");
+            journal.setTable("COUNTERPARTY: " + counterparty.getName());
+            journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
             journalRepository.save(journal);
 
             return true;

@@ -46,9 +46,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project addProject(Project project, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("PROJECT: " + project.getName());
-        journal.setAction2("create");
+        journal.setTable("PROJECT: " + project.getName());
+        journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return projectRepository.save(project);
@@ -69,9 +70,10 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("PROJECT: " + project.getName());
-        journal.setAction2("update");
+        journal.setTable("PROJECT: " + project.getName());
+        journal.setAction("update");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return result;
@@ -83,9 +85,10 @@ public class ProjectServiceImpl implements ProjectService {
         if (project != null){
             projectRepository.deleteById(id);
             Journal journal = new Journal();
-            journal.setAction1("PROJECT: " + project.getName());
-            journal.setAction2("delete");
+            journal.setTable("PROJECT: " + project.getName());
+            journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
             journalRepository.save(journal);
             return true;
         }

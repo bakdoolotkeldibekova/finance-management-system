@@ -42,9 +42,10 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
             Journal journal = new Journal();
-            journal.setAction1("USER: " + user.getEmail());
-            journal.setAction2("create");
+            journal.setTable("USER: " + user.getEmail());
+            journal.setAction("create");
             journal.setUser(null);
+            journal.setDeleted(false);
             journalRepository.save(journal);
             return true;
         }
@@ -122,9 +123,10 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
             Journal journal = new Journal();
-            journal.setAction1("USER: " + user.getEmail());
-            journal.setAction2("changed password");
+            journal.setTable("USER: " + user.getEmail());
+            journal.setAction("changed password");
             journal.setUser(null);
+            journal.setDeleted(false);
             journalRepository.save(journal);
 
             return true;
@@ -186,9 +188,10 @@ public class UserServiceImpl implements UserService {
             userRepository.deleteById(id);
 
             Journal journal = new Journal();
-            journal.setAction1("USER: " + user.getEmail());
-            journal.setAction2("delete");
+            journal.setTable("USER: " + user.getEmail());
+            journal.setAction("delete");
             journal.setUser(null);
+            journal.setDeleted(false);
             journalRepository.save(journal);
             return true;
         }
@@ -207,9 +210,10 @@ public class UserServiceImpl implements UserService {
         user.setPosition(position);
 
         Journal journal = new Journal();
-        journal.setAction1("USER: " + user.getEmail());
-        journal.setAction2("changed position");
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("changed position");
         journal.setUser(null);
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return userRepository.save(user);

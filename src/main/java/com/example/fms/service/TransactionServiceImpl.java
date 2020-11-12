@@ -30,11 +30,14 @@ public class TransactionServiceImpl implements TransactionService{
     private CounterpartyRepository counterpartyRepository;
     @Autowired
     private ProjectRepository projectRepository;
-    @Autowired
-    private UserRepository userRepository;
 
     @Override
-    public List<Transaction> getAll() {
+    public List<Transaction> getAllForUser() {
+        return transactionRepository.findAllByDeleted(false);
+    }
+
+    @Override
+    public List<Transaction> getAllForAdmin() {
         return transactionRepository.findAll();
     }
 
@@ -49,10 +52,12 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setToAccount(accountRepository.findById(transactionIncomeDTO.getToAccount()).orElseThrow(Exception::new));
         transaction.setDescription(transactionIncomeDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
+        transaction.setDeleted(false);
 
         Account account = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
         account.setBalance(account.getBalance().add(transaction.getBalance()));
         accountRepository.save(account);
+
         return transactionRepository.save(transaction);
     }
 
@@ -67,12 +72,14 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setFromAccount(accountRepository.findById(transactionExpenseDTO.getFromAccount()).orElseThrow(Exception::new));
         transaction.setDescription(transactionExpenseDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
+        transaction.setDeleted(false);
 
         Account account = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
-        if (BigDecimal.ZERO.compareTo(account.getBalance().subtract(transaction.getBalance())) == 1) {
-            throw new NotEnoughBalanceException("Not enough balance in account!");
+        BigDecimal a = account.getBalance().subtract(transaction.getBalance());
+        if (BigDecimal.ZERO.compareTo(a) == 1) {
+            throw new Exception("Not enough balance in account!");
         } else {
-            account.setBalance(account.getBalance().subtract(transaction.getBalance()));
+            account.setBalance(a);
         }
 
         accountRepository.save(account);
@@ -88,6 +95,7 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setBalance(transactionRemittanceDTO.getBalance());
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
+        transaction.setDeleted(false);
 
         Account accountFrom = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
         accountFrom.setBalance(accountFrom.getBalance().subtract(transaction.getBalance()));
@@ -133,7 +141,7 @@ public class TransactionServiceImpl implements TransactionService{
 
     @Override
     public List<Transaction> getAllByDateCreatedBefore(String before) {
-        return transactionRepository.findAllByDateCreatedAfter(LocalDateTime.parse(before, formatter));
+        return transactionRepository.findAllByDateCreatedBefore(LocalDateTime.parse(before, formatter));
     }
 
     @Override
@@ -176,6 +184,7 @@ public class TransactionServiceImpl implements TransactionService{
                     transaction.setCounterparty(counterparty);
                     transaction.setDescription(newTransaction.getDescription());
                     transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
                     return transactionRepository.save(transaction);
                 }).orElseThrow(Exception::new);
         return result;
@@ -196,6 +205,7 @@ public class TransactionServiceImpl implements TransactionService{
                     transaction.setCounterparty(counterparty);
                     transaction.setDescription(newTransaction.getDescription());
                     transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
                     return transactionRepository.save(transaction);
                 }).orElseThrow(Exception::new);
         return result;
@@ -212,6 +222,7 @@ public class TransactionServiceImpl implements TransactionService{
                     transaction.setBalance(newTransaction.getBalance());
                     transaction.setDescription(newTransaction.getDescription());
                     transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
                     return transactionRepository.save(transaction);
                 }).orElseThrow(Exception::new);
         return result;
@@ -221,12 +232,13 @@ public class TransactionServiceImpl implements TransactionService{
     public boolean deleteTransactionById(Long id, String userEmail) {
         Transaction transaction = transactionRepository.findById(id).orElse(null);
         if (transaction != null){
-            transactionRepository.deleteById(id);
+            transaction.setDeleted(true);
 
             Journal journal = new Journal(); //всее действия сохр в транзакции, только del в журнале
-            journal.setAction1("TRANSACTION: " + transaction.getAction());
-            journal.setAction2("delete");
+            journal.setTable("TRANSACTION: " + transaction.getAction());
+            journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
             journalRepository.save(journal);
             return true;
         }

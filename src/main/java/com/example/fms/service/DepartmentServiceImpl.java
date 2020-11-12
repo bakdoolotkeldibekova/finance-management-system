@@ -45,9 +45,10 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Override
     public Department addDepartment(Department newDepartment, String userEmail) {
         Journal journal = new Journal();
-        journal.setAction1("DEPARTMENT: " + newDepartment.getName());
-        journal.setAction2("create");
+        journal.setTable("DEPARTMENT: " + newDepartment.getName());
+        journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return departmentRepository.save(newDepartment);
@@ -68,9 +69,10 @@ public class DepartmentServiceImpl implements DepartmentService{
                 .orElseThrow(Exception::new);
 
         Journal journal = new Journal();
-        journal.setAction1("DEPARTMENT: " + newDepartment.getName());
-        journal.setAction2("update");
+        journal.setTable("DEPARTMENT: " + newDepartment.getName());
+        journal.setAction("update");
         journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
         journalRepository.save(journal);
 
         return result;
@@ -82,9 +84,10 @@ public class DepartmentServiceImpl implements DepartmentService{
         if (department != null){
             departmentRepository.deleteById(id);
             Journal journal = new Journal();
-            journal.setAction1("DEPARTMENT: " + department.getName());
-            journal.setAction2("delete");
+            journal.setTable("DEPARTMENT: " + department.getName());
+            journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
             journalRepository.save(journal);
             return true;
         }

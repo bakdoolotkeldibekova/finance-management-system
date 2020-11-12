@@ -19,9 +19,12 @@ public class Journal extends BaseEntity{
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "action1")
-    private String action1;
+    @Column(name = "tablee")
+    private String table;
 
-    @Column(name = "action2")
-    private String action2;
+    @Column(name = "action")
+    private String action;
+
+    @Column(name = "is_deleted", precision = 0)
+    private boolean deleted;
 }

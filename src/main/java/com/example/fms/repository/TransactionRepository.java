@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    List<Transaction> findAllByDeleted(boolean isDeleted);
     List<Transaction> findAllByActionContainingIgnoringCase(String action);
     List<Transaction> findAllByUserId(Long userId);
     List<Transaction> findAllByFromAccountId(Long accountId);

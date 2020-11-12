@@ -1,8 +1,8 @@
 package com.example.fms.service;
 
 import com.example.fms.entity.Journal;
-import com.example.fms.entity.User;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,20 +14,32 @@ import java.util.List;
 public class JournalServiceImpl implements JournalService {
     @Autowired
     private JournalRepository journalRepository;
+    @Autowired
+    private UserService userService;
 
     @Override
-    public List<Journal> getAll() {
+    public Journal getById(Long id) throws Exception{
+        return journalRepository.findById(id).orElseThrow(Exception::new);
+    }
+
+    @Override
+    public List<Journal> getAllForUser() {
+        return journalRepository.findAllByDeleted(false);
+    }
+
+    @Override
+    public List<Journal> getAllForAdmin() {
         return journalRepository.findAll();
     }
 
     @Override
-    public List<Journal> getAllByAction1(String action) {
-        return journalRepository.findAllByAction1ContainingIgnoringCase(action);
+    public List<Journal> getAllByTable(String table) {
+        return journalRepository.findAllByTableContainingIgnoringCase(table);
     }
 
     @Override
-    public List<Journal> getAllByAction2(String action) {
-        return journalRepository.findAllByAction2ContainingIgnoringCase(action);
+    public List<Journal> getAllByAction(String action) {
+        return journalRepository.findAllByActionContainingIgnoringCase(action);
     }
 
     @Override
@@ -50,9 +62,17 @@ public class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public boolean deleteById(Long id) {
-        if(journalRepository.findById(id).isPresent()){
-            journalRepository.deleteById(id);
+    public boolean deleteById(Long id, String userEmail) throws Exception{
+        Journal journal1 = journalRepository.findById(id).orElseThrow(Exception::new);
+        if (journal1 != null) {
+            journal1.setDeleted(true);
+
+            Journal journal = new Journal();
+            journal.setTable("JOURNAL");
+            journal.setAction("delete");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
             return true;
         }
         return false;

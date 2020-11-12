@@ -1,7 +1,9 @@
 package com.example.fms.controller;
 
 import com.example.fms.entity.Account;
+import com.example.fms.entity.User;
 import com.example.fms.service.AccountService;
+import com.example.fms.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +19,7 @@ import java.util.Set;
 public class AccountController {
     private final AccountService accountService;
 
-    AccountController(AccountService accountService) {
+    AccountController(AccountService accountService, UserService userService) {
         this.accountService = accountService;
     }
 
@@ -41,7 +43,6 @@ public class AccountController {
             fooSet.retainAll(accountService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)
             fooSet.retainAll(accountService.getAllByDateCreatedBefore(dateBefore));
-
         return new ArrayList<>(fooSet);
     }
 
@@ -51,7 +52,7 @@ public class AccountController {
     }
 
     @PostMapping("/add")
-    public Account add (@RequestBody Account newAccount, Principal principal) {
+    public Account add(@RequestBody Account newAccount, Principal principal) {
         return accountService.create(newAccount, principal.getName());
     }
 

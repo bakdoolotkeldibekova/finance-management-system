@@ -16,8 +16,8 @@ import java.util.List;
 @Component
 public class Init implements CommandLineRunner {
 
-//    @Autowired
-//    private UserService userService;
+    @Autowired
+    private UserService userService;
 //    @Autowired
 //    private RoleRepository roleRepository;
 
@@ -26,6 +26,6 @@ public class Init implements CommandLineRunner {
 //        List<Role> roleList = new ArrayList<>();
 //        roleList.add(roleRepository.save(new Role("USER")));
 //        userService.createUser(new User("1812.01022@manas.edu.kg", "12345678", "Bulut", "Alimov", roleList, "student", true, null));
-      //  userService.createAdmin(new UserAdminDTO("sanira@gmail.com", "Sanira", "M", "S12345678", "head of neobis"));
+        userService.createAdmin(new UserAdminDTO("sanira@gmail.com", "Sanira", "M", "S12345678", "head of neobis"));
     }
 }
