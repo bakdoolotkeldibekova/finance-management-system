@@ -1,5 +1,6 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "counterparty")
+@JsonInclude
 public class Counterparty extends BaseEntity {
 
     @Column(name = "name", length = 25, nullable = false, unique = true)

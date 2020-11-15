@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.CounterpartyDTO;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Journal;
 import com.example.fms.repository.CounterpartyRepository;
@@ -42,43 +43,45 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     }
 
     @Override
-    public Counterparty addCounterparty(Counterparty newCounterparty, String userEmail) {
+    public Counterparty addCounterparty(CounterpartyDTO counterpartyDTO, String userEmail) {
+        Counterparty counterparty = new Counterparty(counterpartyDTO.getName());
+
         Journal journal = new Journal();
-        journal.setTable("COUNTERPARTY: " + newCounterparty.getName());
+        journal.setTable("COUNTERPARTY: " + counterpartyDTO.getName());
         journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
-        journalRepository.save(journal);
         journal.setDeleted(false);
-        return counterpartyRepository.save(newCounterparty);
+        journalRepository.save(journal);
+        return counterpartyRepository.save(counterparty);
     }
 
     @Override
-    public Counterparty getCounterpartyById(Long id) throws Exception {
-        return counterpartyRepository.findById(id)
-                .orElseThrow(Exception::new);
+    public Counterparty getCounterpartyById(Long id) {
+        return counterpartyRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Counterparty updateCounterpartyById(Counterparty newCounterparty, String userEmail) throws Exception{
-         Counterparty result = counterpartyRepository.findById(newCounterparty.getId())
+    public Counterparty updateCounterpartyById(CounterpartyDTO counterpartyDTO, Long id, String userEmail) {
+         Counterparty result = counterpartyRepository.findById(id)
                 .map(counterparty -> {
-                    counterparty.setName(newCounterparty.getName());
+                    counterparty.setName(counterpartyDTO.getName());
                     return counterpartyRepository.save(counterparty);
                 })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("COUNTERPARTY: " + newCounterparty.getName());
-        journal.setAction("update");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
+                .orElse(null);
+        if (result != null) {
+            Journal journal = new Journal();
+            journal.setTable("COUNTERPARTY: " + counterpartyDTO.getName());
+            journal.setAction("update");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+        }
 
         return result;
     }
 
     @Override
-    public boolean deleteCounterpartyById(Long id, String userEmail) {
+    public Counterparty deleteCounterpartyById(Long id, String userEmail) {
         Counterparty counterparty = counterpartyRepository.findById(id).orElse(null);
         if (counterparty != null){
             counterpartyRepository.deleteById(id);
@@ -88,9 +91,7 @@ public class CounterpartyServiceImpl implements CounterpartyService{
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-
-            return true;
         }
-        return false;
+        return counterparty;
     }
 }

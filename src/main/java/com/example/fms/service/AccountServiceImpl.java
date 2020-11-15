@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.Account;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.User;
@@ -54,60 +55,58 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account create(Account newAccount, String userEmail) {
+    public Account create(AccountDTO accountDTO, String userEmail) {
+        Account account = new Account(accountDTO.getName(), accountDTO.getBalance());
         Journal journal = new Journal();
-        journal.setTable("ACCOUNT: " + newAccount.getName());
+        journal.setTable("ACCOUNT: " + account.getName());
         journal.setAction("create");
         User user = userService.getByEmail(userEmail);
         journal.setUser(user);
         journal.setDeleted(false);
         journalRepository.save(journal);
 
-        return accountRepository.save(newAccount);
+        return accountRepository.save(account);
     }
 
     @Override
-    public Account getAccountById(Long id) throws Exception {
-        return accountRepository.findById(id)
-                .orElseThrow(Exception::new);
+    public Account getAccountById(Long id) {
+         return accountRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Account updateAccountById(Account newAccount, String userEmail) throws Exception{
-        Account result = accountRepository.findById(newAccount.getId())
+    public Account updateAccountById(AccountDTO accountDTO, Long id, String userEmail){
+        Account result = accountRepository.findById(id)
                 .map(account -> {
-                    account.setName(newAccount.getName());
-                    account.setBalance(newAccount.getBalance());
+                    account.setName(accountDTO.getName());
+                    account.setBalance(accountDTO.getBalance());
                     return accountRepository.save(account);
                 })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("ACCOUNT: " + newAccount.getName());
-        journal.setAction("update");
-        User user = userService.getByEmail(userEmail);
-        journal.setUser(user);
-        journal.setDeleted(false);
-        journalRepository.save(journal);
+                .orElse(null);
+        if (result != null) {
+            Journal journal = new Journal();
+            journal.setTable("ACCOUNT: " + accountDTO.getName());
+            journal.setAction("update");
+            User user = userService.getByEmail(userEmail);
+            journal.setUser(user);
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+        }
 
         return result;
     }
 
     @Override
-    public boolean deleteAccountById(Long id, String userEmail) {
+    public Account deleteAccountById(Long id, String userEmail) {
         Account account = accountRepository.findById(id).orElse(null);
         if (account != null){
             accountRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("ACCOUNT: " + account.getName());
             journal.setAction("delete");
-            User user = userService.getByEmail(userEmail);
-            journal.setUser(user);
+            journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-
-            return true;
         }
-        return false;
+        return account;
     }
 }

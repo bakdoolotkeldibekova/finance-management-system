@@ -1,19 +1,18 @@
 package com.example.fms.controller;
 
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Role;
 import com.example.fms.service.JournalService;
 import com.example.fms.service.UserService;
-import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/journal")
@@ -28,36 +27,37 @@ public class JournalController {
     }
 
     @DeleteMapping("/{id}")
-    public boolean deleteById(@PathVariable Long id, Principal principal) throws Exception{
-        return journalService.deleteById(id, principal.getName());
+    public ResponseMessage deleteById(@PathVariable Long id, Principal principal) {
+        Journal journal = journalService.deleteById(id, principal.getName());
+        if (journal == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Journal id " + id + " not found!");
+        return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
     }
 
     @GetMapping("/{id}")
-    public Journal getById(@PathVariable("id") Long id, Principal principal) throws Exception{
+    public Journal getById(@PathVariable("id") Long id, Principal principal) {
         String email = principal.getName();
         boolean isAdmin = false;
-        for (Role item : userService.getByEmail(email).getRoles()) {
-            if (item.getName().equalsIgnoreCase("ADMIN")) {
-                isAdmin = true; break;
-            }
-        }
+        if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
+            isAdmin = true;
+
         if (isAdmin) return journalService.getById(id);
         else {
             Journal journal = journalService.getById(id);
             if (journal.isDeleted())
-                throw  new NotFoundException("Action number" + id + " has not found");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Journal id " + id + " not found!");
             else return journal;
         }
+
     }
 
     @GetMapping("/get")
     public List<Journal> getAllByParam(HttpServletRequest request, Principal principal){
+        String email = principal.getName();
         boolean isAdmin = false;
-        for (Role item : userService.getByEmail(principal.getName()).getRoles()) {
-            if (item.getName().equalsIgnoreCase("ADMIN")) {
-                isAdmin = true; break;
-            }
-        }
+        if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
+            isAdmin = true;
+
         String table = request.getParameter("table");
         String action = request.getParameter("action");
         String user = request.getParameter("user");

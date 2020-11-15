@@ -1,8 +1,15 @@
 package com.example.fms.controller;
 
+import com.example.fms.dto.CategoryDTO;
+import com.example.fms.entity.Account;
 import com.example.fms.entity.Category;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.entity.User;
 import com.example.fms.service.CategoryService;
+import com.example.fms.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
@@ -16,13 +23,19 @@ import java.util.Set;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final UserService userService;
 
-    CategoryController(CategoryService categoryService) {
+    CategoryController(CategoryService categoryService, UserService userService) {
         this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     @GetMapping("/get")
-    public List<Category> getAllByParam(HttpServletRequest request) {
+    public List<Category> getAllByParam(HttpServletRequest request, Principal principal) {
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get category information");
+        }
         String name = request.getParameter("name");
         String dateAfter = request.getParameter("dateAfter");
         String dateBefore = request.getParameter("dateBefore");
@@ -39,25 +52,52 @@ public class CategoryController {
         return new ArrayList<>(fooSet);
     }
 
+    @GetMapping("/{categoryId}")
+    public Category getCategory(@PathVariable("categoryId") Long categoryId, Principal principal) {
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get account information");
+        }
+        Category category = categoryService.getCategoryById(categoryId);
+        if (category != null) {
+            return category;
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + categoryId + " not found!");
+    }
+
     @PostMapping("/add")
-    public Category addCategory (@RequestBody Category newCategory, Principal principal) {
-        return categoryService.addCategory(newCategory, principal.getName());
+    public ResponseMessage addCategory (@RequestBody CategoryDTO categoryDTO, Principal principal) {
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add category");
+        }
+        categoryService.addCategory(categoryDTO, principal.getName());
+        return new ResponseMessage(HttpStatus.OK.value(), "Category successfully saved");
     }
 
-    @GetMapping("/{id}")
-    public Category getCategory(@PathVariable Long id) throws Exception {
-        return categoryService.getCategoryById(id);
+    @PutMapping("/update/{id}")
+    public ResponseMessage updateCategory(@RequestBody CategoryDTO categoryDTO, @PathVariable Long id, Principal principal){
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to change category information");
+        }
+        Category category = categoryService.updateCategoryById(categoryDTO, id, principal.getName());
+        if (category != null) {
+            return new ResponseMessage(HttpStatus.OK.value(), "Category successfully updated");
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + id + " not found!");
     }
 
-    @PutMapping("/update")
-    public Category updateCategory(@RequestBody Category newCategory, Principal principal) throws Exception{
-        return categoryService.updateCategoryById(newCategory, principal.getName());
+    @DeleteMapping("/{id}")
+    public ResponseMessage deleteCategory(@PathVariable Long id, Principal principal) {
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to delete category information");
+        }
+        Category category = categoryService.deleteCategoryById(id, principal.getName());
+        if (category != null) {
+            return new ResponseMessage(HttpStatus.OK.value(), "Category successfully deleted");
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + id + " not found!");
     }
-
-    @DeleteMapping("/delete/{id}")
-    public boolean deleteCategory(@PathVariable Long id, Principal principal) {
-        return categoryService.deleteCategoryById(id, principal.getName());
-    }
-
-
 }

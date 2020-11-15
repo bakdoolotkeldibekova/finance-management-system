@@ -1,5 +1,6 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ import java.util.Locale;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "staff")
+@JsonInclude
 public class Staff extends BaseEntity {
 
 	@Column(name = "name", nullable = false)

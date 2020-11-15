@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -59,10 +57,7 @@ public class UserServiceImpl implements UserService {
       //  user.setDepartments(userDTO.getDepartmentList());
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
-
-        List<Role> roleList = new ArrayList<>();
-        roleList.add(roleRepository.findById(2L).orElse(null));
-        user.setRoles(roleList);
+        user.setRole(roleRepository.findById(2L).orElse(roleRepository.save(new Role("ROLE_USER"))));
 
         String message = "Hello, ! \n" +
                 " Please, visit next link to activate your account: http:localhost:8080/registr/activate/" +
@@ -83,11 +78,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encoder.encode(userAdminDTO.getPassword()));
         user.setPosition(userAdminDTO.getPosition());
         user.setActive(true);
-
-
-        List<Role> roles = new ArrayList<>();
-        roles.add(roleRepository.findById(1L).orElse(null));
-        user.setRoles(roles);
+        user.setRole(roleRepository.findById(1L).orElse(roleRepository.save(new Role("ROLE_ADMIN"))));
 
         userRepository.save(user);
     }
@@ -178,7 +169,24 @@ public class UserServiceImpl implements UserService {
     public User getByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+/*
+    @Override
+    public User getEmail(String email) {
+        Map<String, Object> addUser = new HashMap<>();
+        User user = userRepository.findByEmail(email);
+        addUser.put("id", user.getId());
+        addUser.put("dateCreated", user.getDateCreated());
+        addUser.put("dateUpdated", user.getDateUpdated());
+        addUser.put("email", user.getEmail());
+        addUser.put("name", user.getName() + " " + user.getSurname());
+        addUser.put("position", user.getPosition());
 
+        Gson gson = new Gson();
+        JsonElement jsonElement = gson.toJsonTree(addUser);
+        return gson.fromJson(jsonElement, User.class);
+    }
+
+ */
     @Override
     public boolean deleteUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);

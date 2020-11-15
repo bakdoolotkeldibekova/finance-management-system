@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
 import com.example.fms.entity.Journal;
 import com.example.fms.repository.CategoryRepository;
@@ -42,43 +43,44 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public Category addCategory(Category newCategory, String userEmail) {
+    public Category addCategory(CategoryDTO categoryDTO, String userEmail) {
+        Category category = new Category(categoryDTO.getName());
+
         Journal journal = new Journal();
-        journal.setTable("CATEGORY: " + newCategory.getName());
+        journal.setTable("CATEGORY: " + categoryDTO.getName());
         journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
-        return categoryRepository.save(newCategory);
+        return categoryRepository.save(category);
     }
 
     @Override
-    public Category getCategoryById(Long id) throws Exception{
-        return categoryRepository.findById(id)
-                .orElseThrow(Exception::new);
+    public Category getCategoryById(Long id){
+        return categoryRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Category updateCategoryById(Category newCategory, String userEmail) throws Exception{
-        Category result = categoryRepository.findById(newCategory.getId())
+    public Category updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail){
+        Category result = categoryRepository.findById(id)
                 .map(category -> {
-                    category.setName(newCategory.getName());
+                    category.setName(categoryDTO.getName());
                     return categoryRepository.save(category);
                 })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("CATEGORY: " + newCategory.getName());
-        journal.setAction("update");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
-
+                .orElse(null);
+        if (result != null) {
+            Journal journal = new Journal();
+            journal.setTable("CATEGORY: " + categoryDTO.getName());
+            journal.setAction("update");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+        }
         return result;
     }
 
     @Override
-    public boolean deleteCategoryById(Long id, String userEmail) {
+    public Category deleteCategoryById(Long id, String userEmail) {
         Category category = categoryRepository.findById(id).orElse(null);
         if (category != null){
             categoryRepository.deleteById(id);
@@ -88,9 +90,7 @@ public class CategoryServiceImpl implements CategoryService{
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-
-            return true;
         }
-        return false;
+        return category;
     }
 }

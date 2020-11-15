@@ -1,9 +1,8 @@
 package com.example.fms.service;
 
-import com.example.fms.entity.Department;
+import com.example.fms.dto.ProjectDTO;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.Project;
-import com.example.fms.entity.User;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project addProject(Project project, String userEmail) {
+    public Project addProject(ProjectDTO projectDTO, String userEmail) {
+        Project project = new Project(projectDTO.getName());
+
         Journal journal = new Journal();
         journal.setTable("PROJECT: " + project.getName());
         journal.setAction("create");
@@ -56,31 +57,31 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project getProjectById(Long id) throws Exception{
-        return projectRepository.findById(id).orElseThrow(Exception::new);
+    public Project getProjectById(Long id) {
+        return projectRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Project updateProjectById(Project project, String userEmail) throws Exception{
-        Project result = projectRepository.findById(project.getId())
+    public Project updateProjectById(ProjectDTO projectDTO, Long id, String userEmail){
+        Project result = projectRepository.findById(id)
                 .map(newProject -> {
-                    newProject.setName(project.getName());
+                    newProject.setName(projectDTO.getName());
                     return projectRepository.save(newProject);
                 })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("PROJECT: " + project.getName());
-        journal.setAction("update");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
-
+                .orElse(null);
+        if (result != null) {
+            Journal journal = new Journal();
+            journal.setTable("PROJECT: " + projectDTO.getName());
+            journal.setAction("update");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+        }
         return result;
     }
 
     @Override
-    public boolean deleteProjectById(Long id, String userEmail) {
+    public Project deleteProjectById(Long id, String userEmail) {
         Project project = projectRepository.findById(id).orElse(null);
         if (project != null){
             projectRepository.deleteById(id);
@@ -90,8 +91,7 @@ public class ProjectServiceImpl implements ProjectService {
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-            return true;
         }
-        return false;
+        return project;
     }
 }

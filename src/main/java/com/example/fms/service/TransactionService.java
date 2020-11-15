@@ -13,13 +13,13 @@ public interface TransactionService {
     List<Transaction> getAllForAdmin();
     List<Transaction> getAllForUser();
 
-    Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) throws Exception;
+    Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
 
-    Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail) throws Exception;
+    Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail);
 
-    Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail) throws Exception;
+    Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail);
 
-    Transaction getTransactionById (Long id) throws Exception;
+    Transaction getTransactionById (Long id);
 
     List<Transaction> getAllByAction(String action);
 
@@ -38,9 +38,9 @@ public interface TransactionService {
     List<Transaction> getAllByProject(Long projectId);
     List<Transaction> getAllByCounterparty(Long counterpartyId);
 
-    Transaction updateIncomeById(TransactionIncomeDTO newTransaction, String userEmail) throws Exception;
-    Transaction updateExpenseById(TransactionExpenseDTO newTransaction, String userEmail) throws Exception;
-    Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, String userEmail) throws Exception;
+    Transaction updateIncomeById(TransactionIncomeDTO newTransaction, Long id, String userEmail);
+    Transaction updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail);
+    Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail);
 
-    boolean deleteTransactionById (Long id, String userEmail);
+    Transaction deleteTransactionById (Long id, String userEmail);
 }

@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface StaffService {
     List<Staff> getAll();
-    Staff addStaff(StaffDTO newStaff, String userEmail) throws Exception;
-    Staff getStaffById(Long id) throws Exception;
+    Staff addStaff(StaffDTO newStaff, String userEmail);
+    Staff getStaffById(Long id);
     List<Staff> getAllStaffByName(String name);
-    Staff updateStaffById (StaffDTO newStaff, String userEmail) throws Exception;
-    boolean deleteStaffById(Long id, String userEmail);
+    String updateStaffById (StaffDTO newStaff, Long id, String userEmail);
+    Staff deleteStaffById(Long id, String userEmail);
 
     List<Staff> getAllByDateCreatedAfter(String after);
     List<Staff> getAllByDateCreatedBefore(String before);

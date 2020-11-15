@@ -1,8 +1,8 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.DepartmentDTO;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.Journal;
-import com.example.fms.entity.User;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,43 +43,44 @@ public class DepartmentServiceImpl implements DepartmentService{
     }
 
     @Override
-    public Department addDepartment(Department newDepartment, String userEmail) {
+    public Department addDepartment(DepartmentDTO departmentDTO, String userEmail) {
+        Department department = new Department(departmentDTO.getName());
+
         Journal journal = new Journal();
-        journal.setTable("DEPARTMENT: " + newDepartment.getName());
+        journal.setTable("DEPARTMENT: " + departmentDTO.getName());
         journal.setAction("create");
         journal.setUser(userService.getByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
-
-        return departmentRepository.save(newDepartment);
+        return departmentRepository.save(department);
     }
 
     @Override
-    public Department getDepartmentById(Long id)throws Exception {
-        return departmentRepository.findById(id).orElseThrow(Exception::new);
+    public Department getDepartmentById(Long id) {
+        return departmentRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Department updateDepartmentById(Department newDepartment, String userEmail)throws Exception {
-        Department result = departmentRepository.findById(newDepartment.getId())
+    public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail) {
+        Department result = departmentRepository.findById(id)
                 .map(department -> {
-                    department.setName(newDepartment.getName());
+                    department.setName(departmentDTO.getName());
                     return departmentRepository.save(department);
                 })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("DEPARTMENT: " + newDepartment.getName());
-        journal.setAction("update");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
-
+                .orElse(null);
+        if (result != null) {
+            Journal journal = new Journal();
+            journal.setTable("DEPARTMENT: " + departmentDTO.getName());
+            journal.setAction("update");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+        }
         return result;
     }
 
     @Override
-    public boolean deleteDepartmentById(Long id, String userEmail) {
+    public Department deleteDepartmentById(Long id, String userEmail) {
         Department department = departmentRepository.findById(id).orElse(null);
         if (department != null){
             departmentRepository.deleteById(id);
@@ -89,8 +90,7 @@ public class DepartmentServiceImpl implements DepartmentService{
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-            return true;
         }
-        return false;
+        return department;
     }
 }

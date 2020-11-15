@@ -1,5 +1,7 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,6 +16,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "journal")
+@JsonInclude
 public class Journal extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "user_id")

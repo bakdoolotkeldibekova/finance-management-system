@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.DepartmentDTO;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.User;
@@ -12,12 +13,12 @@ public interface DepartmentService {
     List<Department> getAllByNameContaining(String name);
     List<Department> getAllByDateCreatedBefore(String before);
     List<Department> getAllByDateCreatedAfter(String after);
-    Department addDepartment (Department newDepartment, String userEmail);
+    Department addDepartment (DepartmentDTO departmentDTO, String userEmail);
 
-    Department getDepartmentById(Long id) throws Exception;
+    Department getDepartmentById(Long id);
 
-    Department updateDepartmentById(Department newDepartment, String userEmail)throws Exception;
+    Department updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail);
 
-    boolean deleteDepartmentById(Long id, String userEmail);
+    Department deleteDepartmentById(Long id, String userEmail);
 
 }

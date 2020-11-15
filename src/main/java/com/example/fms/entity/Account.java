@@ -1,5 +1,6 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "account")
+@JsonInclude
 public class Account extends BaseEntity{
 
     @Column(name = "name", nullable = false)

@@ -5,7 +5,7 @@ import com.example.fms.entity.Journal;
 import java.util.List;
 
 public interface JournalService {
-    Journal getById(Long id) throws Exception;
+    Journal getById(Long id);
     List<Journal> getAllForAdmin();
     List<Journal> getAllForUser();
     List<Journal> getAllByTable(String table);
@@ -15,5 +15,5 @@ public interface JournalService {
     List<Journal> getAllByDateCreatedAfter(String after);
     List<Journal> getAllByDateCreatedBefore(String before);
 
-    boolean deleteById(Long id, String userEmail) throws Exception;
+    Journal deleteById(Long id, String userEmail);
 }

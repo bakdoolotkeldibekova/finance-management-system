@@ -1,5 +1,6 @@
 package com.example.fms.service;
 
+import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
 import com.example.fms.entity.User;
 
@@ -12,12 +13,12 @@ public interface CategoryService {
     List<Category> getAllByDateCreatedAfter(String after);
     List<Category> getAllByDateCreatedBefore(String before);
 
-    Category addCategory(Category newCategory, String userEmail);
+    Category addCategory(CategoryDTO categoryDTO, String userEmail);
 
-    Category getCategoryById(Long id) throws Exception;
+    Category getCategoryById(Long id);
 
-    Category updateCategoryById(Category newCategory, String userEmail) throws Exception;
+    Category updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail);
 
-    boolean deleteCategoryById(Long id, String userEmail);
+    Category deleteCategoryById(Long id, String userEmail);
 
 }

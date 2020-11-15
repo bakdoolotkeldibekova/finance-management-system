@@ -7,7 +7,9 @@ import com.example.fms.entity.*;
 
 import com.example.fms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,19 +44,36 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) throws Exception {
+    public Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) {
         Transaction transaction = new Transaction();
         transaction.setAction("INCOME");
-        transaction.setCategory(categoryRepository.findById(transactionIncomeDTO.getCategory()).orElseThrow(Exception::new));
-        transaction.setCounterparty(counterpartyRepository.findById(transactionIncomeDTO.getCounterparty()).orElseThrow(Exception::new));
+
+        Category category = categoryRepository.findById(transactionIncomeDTO.getCategory()).orElse(null);
+        if (category == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + transactionIncomeDTO.getCategory() + " not found!");
+        transaction.setCategory(category);
+
+        Counterparty counterparty = counterpartyRepository.findById(transactionIncomeDTO.getCounterparty()).orElse(null);
+        if (counterparty == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Counterparty id " + transactionIncomeDTO.getCounterparty() + " not found!");
+        transaction.setCounterparty(counterparty);
+
         transaction.setBalance(transactionIncomeDTO.getBalance());
-        transaction.setProject(projectRepository.findById(transactionIncomeDTO.getProject()).orElseThrow(Exception::new));
-        transaction.setToAccount(accountRepository.findById(transactionIncomeDTO.getToAccount()).orElseThrow(Exception::new));
+
+        Project project = projectRepository.findById(transactionIncomeDTO.getProject()).orElse(null);
+        if (project == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + transactionIncomeDTO.getProject() + " not found!");
+        transaction.setProject(project);
+
+        Account account = accountRepository.findById(transactionIncomeDTO.getToAccount()).orElse(null);
+        if (account == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + transactionIncomeDTO.getToAccount() + " not found!");
+        transaction.setToAccount(account);
+
         transaction.setDescription(transactionIncomeDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
         transaction.setDeleted(false);
 
-        Account account = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
         account.setBalance(account.getBalance().add(transaction.getBalance()));
         accountRepository.save(account);
 
@@ -62,22 +81,39 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail) throws Exception {
+    public Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail) {
         Transaction transaction = new Transaction();
         transaction.setAction("EXPENSE");
-        transaction.setCategory(categoryRepository.findById(transactionExpenseDTO.getCategory()).orElseThrow(Exception::new));
-        transaction.setCounterparty(counterpartyRepository.findById(transactionExpenseDTO.getCounterparty()).orElseThrow(Exception::new));
+
+        Category category = categoryRepository.findById(transactionExpenseDTO.getCategory()).orElse(null);
+        if (category == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + transactionExpenseDTO.getCategory() + " not found!");
+        transaction.setCategory(category);
+
+        Counterparty counterparty = counterpartyRepository.findById(transactionExpenseDTO.getCounterparty()).orElse(null);
+        if (counterparty == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Counterparty id " + transactionExpenseDTO.getCounterparty() + " not found!");
+        transaction.setCounterparty(counterparty);
+
         transaction.setBalance(transactionExpenseDTO.getBalance());
-        transaction.setProject(projectRepository.findById(transactionExpenseDTO.getProject()).orElseThrow(Exception::new));
-        transaction.setFromAccount(accountRepository.findById(transactionExpenseDTO.getFromAccount()).orElseThrow(Exception::new));
+
+        Project project = projectRepository.findById(transactionExpenseDTO.getProject()).orElse(null);
+        if (project == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + transactionExpenseDTO.getProject() + " not found!");
+        transaction.setProject(project);
+
+        Account account = accountRepository.findById(transactionExpenseDTO.getFromAccount()).orElse(null);
+        if (account == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + transactionExpenseDTO.getFromAccount() + " not found!");
+        transaction.setFromAccount(account);
+
         transaction.setDescription(transactionExpenseDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
         transaction.setDeleted(false);
 
-        Account account = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
         BigDecimal a = account.getBalance().subtract(transaction.getBalance());
         if (BigDecimal.ZERO.compareTo(a) == 1) {
-            throw new Exception("Not enough balance in account!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + transactionExpenseDTO.getFromAccount() + "!");
         } else {
             account.setBalance(a);
         }
@@ -87,30 +123,36 @@ public class TransactionServiceImpl implements TransactionService{
         return transactionRepository.save(transaction);
     }
     @Override
-    public Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail) throws Exception {
+    public Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail)  {
         Transaction transaction = new Transaction();
         transaction.setAction("REMITTANCE");
-        transaction.setFromAccount(accountRepository.findById(transactionRemittanceDTO.getFromAccount()).orElseThrow(Exception::new));
-        transaction.setToAccount(accountRepository.findById(transactionRemittanceDTO.getToAccount()).orElseThrow(Exception::new));
+        Account fromAccount = accountRepository.findById(transactionRemittanceDTO.getFromAccount()).orElse(null);
+        if (fromAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + transactionRemittanceDTO.getFromAccount() + " not found!");
+        transaction.setFromAccount(fromAccount);
+
+        Account toAccount = accountRepository.findById(transactionRemittanceDTO.getToAccount()).orElse(null);
+        if (toAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + transactionRemittanceDTO.getToAccount() + " not found!");
+        transaction.setToAccount(toAccount);
+
         transaction.setBalance(transactionRemittanceDTO.getBalance());
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userService.getByEmail(userEmail));
         transaction.setDeleted(false);
 
-        Account accountFrom = accountRepository.findById(transaction.getFromAccount().getId()).orElseThrow(Exception::new);
-        accountFrom.setBalance(accountFrom.getBalance().subtract(transaction.getBalance()));
-        accountRepository.save(accountFrom);
+        fromAccount.setBalance(fromAccount.getBalance().subtract(transaction.getBalance()));
+        accountRepository.save(fromAccount);
 
-        Account accountTo = accountRepository.findById(transaction.getToAccount().getId()).orElseThrow(Exception::new);
-        accountTo.setBalance(accountTo.getBalance().add(transaction.getBalance()));
-        accountRepository.save(accountTo);
+        toAccount.setBalance(toAccount.getBalance().add(transaction.getBalance()));
+        accountRepository.save(toAccount);
 
         return transactionRepository.save(transaction);
     }
 
     @Override
-    public Transaction getTransactionById(Long id) throws Exception {
-        return transactionRepository.findById(id).orElseThrow(Exception::new);
+    public Transaction getTransactionById(Long id) {
+        return transactionRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -170,78 +212,238 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public Transaction updateIncomeById(TransactionIncomeDTO newTransaction, String userEmail) throws Exception {
-        Account toAccount = accountRepository.findById(newTransaction.getToAccount()).orElseThrow(Exception::new);
-        Category category = categoryRepository.findById(newTransaction.getCategory()).orElseThrow(Exception::new);
-        Project project = projectRepository.findById(newTransaction.getProject()).orElseThrow(Exception::new);
-        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElseThrow(Exception::new);
-        Transaction result = transactionRepository.findById(newTransaction.getId())
-                .map(transaction -> {
-                    transaction.setCategory(category);
-                    transaction.setToAccount(toAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setProject(project);
-                    transaction.setCounterparty(counterparty);
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userService.getByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(Exception::new);
-        return result;
-    }
+    public Transaction updateIncomeById(TransactionIncomeDTO newTransaction, Long id, String userEmail) {
+        Transaction oldTransaction = transactionRepository.findById(id).orElse(null);
+        if (oldTransaction == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
 
-    @Override
-    public Transaction updateExpenseById(TransactionExpenseDTO newTransaction, String userEmail) throws Exception {
-        Account fromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElseThrow(Exception::new);
-        Category category = categoryRepository.findById(newTransaction.getCategory()).orElseThrow(Exception::new);
-        Project project = projectRepository.findById(newTransaction.getProject()).orElseThrow(Exception::new);
-        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElseThrow(Exception::new);
-        Transaction result = transactionRepository.findById(newTransaction.getId())
-                .map(transaction -> {
-                    transaction.setCategory(category);
-                    transaction.setToAccount(fromAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setProject(project);
-                    transaction.setCounterparty(counterparty);
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userService.getByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(Exception::new);
-        return result;
-    }
+        Account oldAccount = accountRepository.findById(oldTransaction.getToAccount().getId()).orElse(null);
+        if (oldAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + oldAccount.getId() + " not found!");
+        Account newAccount = accountRepository.findById(newTransaction.getToAccount()).orElse(null);
+        if (newAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + newAccount.getId() + " not found!");
 
-    @Override
-    public Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, String userEmail) throws Exception {
-        Account fromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElseThrow(Exception::new);
-        Account toAccount = accountRepository.findById(newTransaction.getToAccount()).orElseThrow(Exception::new);
-        Transaction result = transactionRepository.findById(newTransaction.getId())
-                .map(transaction -> {
-                    transaction.setFromAccount(fromAccount);
-                    transaction.setToAccount(toAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userService.getByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(Exception::new);
-        return result;
-    }
+        BigDecimal balance;
+        if (oldAccount == newAccount) {
+            balance = newAccount.getBalance().add(newTransaction.getBalance().subtract(oldTransaction.getBalance()));
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newAccount.getId() + "!");
+        } else {
+            balance = oldAccount.getBalance().subtract(newTransaction.getBalance());
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + oldAccount.getId() + "!");
+            oldAccount.setBalance(balance);
 
-    @Override
-    public boolean deleteTransactionById(Long id, String userEmail) {
-        Transaction transaction = transactionRepository.findById(id).orElse(null);
-        if (transaction != null){
-            transaction.setDeleted(true);
-
-            Journal journal = new Journal(); //всее действия сохр в транзакции, только del в журнале
-            journal.setTable("TRANSACTION: " + transaction.getAction());
-            journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
-            journal.setDeleted(false);
-            journalRepository.save(journal);
-            return true;
+            balance = newAccount.getBalance().add(newTransaction.getBalance());
         }
-        return false;
+        newAccount.setBalance(balance);
+
+        //oldTransaction.setToAccount(newAccount);
+        Category category = categoryRepository.findById(newTransaction.getCategory()).orElse(null);
+        if (category == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + newTransaction.getCategory() + " not found!");
+        //oldTransaction.setCategory(category);
+
+        Project project = projectRepository.findById(newTransaction.getProject()).orElse(null);
+        if (project == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + newTransaction.getProject() + " not found!");
+        //oldTransaction.setProject(project);
+
+        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElse(null);
+        if (counterparty == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Counterparty id " + newTransaction.getCounterparty() + " not found!");
+        //oldTransaction.setCounterparty(counterparty);
+        //oldTransaction.setDescription(newTransaction.getDescription());
+
+
+        Transaction result = transactionRepository.findById(id)
+                .map(transaction -> {
+                    transaction.setCategory(category);
+                    transaction.setToAccount(newAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setProject(project);
+                    transaction.setCounterparty(counterparty);
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
+                    return transactionRepository.save(transaction);
+                }).orElse(null);
+        if (result == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return result;
+    }
+
+    @Override
+    public Transaction updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail) {
+        Transaction oldTransaction = transactionRepository.findById(id).orElse(null);
+        if (oldTransaction == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+
+        Account oldAccount = accountRepository.findById(oldTransaction.getFromAccount().getId()).orElse(null);
+        if (oldAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + oldAccount.getId() + " not found!");
+        Account newAccount = accountRepository.findById(newTransaction.getFromAccount()).orElse(null);
+        if (oldAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + newAccount.getId() + " not found!");
+
+        BigDecimal balance;
+        if (oldAccount == newAccount) {
+            balance = newAccount.getBalance().add(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newAccount.getId() + "!");
+        } else {
+            balance = oldAccount.getBalance().add(newTransaction.getBalance());
+            oldAccount.setBalance(balance);
+            balance = newAccount.getBalance().subtract(newTransaction.getBalance());
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newAccount.getId() + "!");
+        }
+        newAccount.setBalance(balance);
+
+        Category category = categoryRepository.findById(newTransaction.getCategory()).orElse(null);
+        if (category == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + newTransaction.getCounterparty() + " not found!");
+
+        Project project = projectRepository.findById(newTransaction.getProject()).orElse(null);
+        if (project == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + newTransaction.getProject() + " not found!");
+
+        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty()).orElse(null);
+        if (counterparty == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Counterparty id " + newTransaction.getCounterparty() + " not found!");
+
+        Transaction result = transactionRepository.findById(id)
+                .map(transaction -> {
+                    transaction.setCategory(category);
+                    transaction.setFromAccount(newAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setProject(project);
+                    transaction.setCounterparty(counterparty);
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
+                    return transactionRepository.save(transaction);
+                }).orElse(null);
+        if (result == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return result;
+    }
+
+    @Override
+    public Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail) {
+        Transaction oldTransaction = transactionRepository.findById(id).orElse(null);
+        if (oldTransaction == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+
+        Account oldFromAccount = accountRepository.findById(oldTransaction.getFromAccount().getId()).orElse(null);
+        if (oldFromAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + oldFromAccount.getId() + " not found!");
+        Account newFromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElse(null);
+        if (newFromAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + newFromAccount.getId() + " not found!");
+        Account oldToAccount = accountRepository.findById(oldTransaction.getToAccount().getId()).orElse(null);
+        if (oldToAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + oldToAccount.getId() + " not found!");
+        Account newToAccount = accountRepository.findById(newTransaction.getToAccount()).orElse(null);
+        if (newToAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + newToAccount.getId() + " not found!");
+
+        BigDecimal balance;
+        if (oldFromAccount == newFromAccount) {
+            balance = oldFromAccount.getBalance().add(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + oldFromAccount.getId() + "!");
+            oldFromAccount.setBalance(balance);
+
+            if (oldToAccount == newToAccount) {
+                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
+                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + oldToAccount.getId() + "!");
+                oldToAccount.setBalance(balance);
+            } else {
+                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance());
+                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + oldToAccount.getId() + "!");
+                oldToAccount.setBalance(balance);
+
+                balance = newToAccount.getBalance().add(newTransaction.getBalance());
+                newToAccount.setBalance(balance);
+            }
+        } else {
+            balance = oldFromAccount.getBalance().add(oldTransaction.getBalance());
+            oldFromAccount.setBalance(balance);
+
+            balance = newFromAccount.getBalance().subtract(newTransaction.getBalance());
+            if (BigDecimal.ZERO.compareTo(balance) == 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newFromAccount.getId() + "!");
+            newFromAccount.setBalance(balance);
+
+            if (oldToAccount == newToAccount) {
+                balance = newToAccount.getBalance().subtract(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
+                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newToAccount.getId() + "!");
+                newToAccount.setBalance(balance);
+            } else {
+                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance());
+                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + oldToAccount.getId() + "!");
+                oldToAccount.setBalance(balance);
+
+                balance = newToAccount.getBalance().add(newTransaction.getBalance());
+                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + newToAccount.getId() + "!");
+                newToAccount.setBalance(balance);
+            }
+
+        }
+
+        Transaction result = transactionRepository.findById(id)
+                .map(transaction -> {
+                    transaction.setFromAccount(newFromAccount);
+                    transaction.setToAccount(newToAccount);
+                    transaction.setBalance(newTransaction.getBalance());
+                    transaction.setDescription(newTransaction.getDescription());
+                    transaction.setUser(userService.getByEmail(userEmail));
+                    transaction.setDeleted(false);
+                    return transactionRepository.save(transaction);
+                }).orElse(null);
+        if (result == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return result;
+    }
+
+    @Override
+    public Transaction deleteTransactionById(Long id, String userEmail) {
+        Transaction transaction = transactionRepository.findById(id).orElse(null);
+        if (transaction == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+
+        Account fromAccount = accountRepository.findById(transaction.getFromAccount().getId()).orElse(null);
+        if (fromAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + fromAccount.getId() + " not found!");
+
+        Account toAccount = accountRepository.findById(transaction.getToAccount().getId()).orElse(null);
+        if (toAccount == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account id " + toAccount.getId() + " not found!");
+
+        BigDecimal balance = fromAccount.getBalance().add(transaction.getBalance());
+        fromAccount.setBalance(balance);
+
+        balance = toAccount.getBalance().subtract(transaction.getBalance());
+        if (BigDecimal.ZERO.compareTo(balance) == 1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough balance in account id " + toAccount.getId() + "!");
+        toAccount.setBalance(balance);
+
+        transaction.setDeleted(true);
+
+        Journal journal = new Journal(); //всее действия сохр в транзакции, только del в журнале
+        journal.setTable("TRANSACTION: " + transaction.getAction());
+        journal.setAction("delete");
+        journal.setUser(userService.getByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return transaction;
     }
 }

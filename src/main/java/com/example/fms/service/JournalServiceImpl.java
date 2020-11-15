@@ -2,7 +2,6 @@ package com.example.fms.service;
 
 import com.example.fms.entity.Journal;
 import com.example.fms.repository.JournalRepository;
-import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +17,8 @@ public class JournalServiceImpl implements JournalService {
     private UserService userService;
 
     @Override
-    public Journal getById(Long id) throws Exception{
-        return journalRepository.findById(id).orElseThrow(Exception::new);
+    public Journal getById(Long id){
+        return journalRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -62,8 +61,8 @@ public class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public boolean deleteById(Long id, String userEmail) throws Exception{
-        Journal journal1 = journalRepository.findById(id).orElseThrow(Exception::new);
+    public Journal deleteById(Long id, String userEmail) {
+        Journal journal1 = journalRepository.findById(id).orElse(null);
         if (journal1 != null) {
             journal1.setDeleted(true);
 
@@ -73,8 +72,7 @@ public class JournalServiceImpl implements JournalService {
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-            return true;
         }
-        return false;
+        return journal1;
     }
 }

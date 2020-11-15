@@ -1,5 +1,7 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,11 +17,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@JsonInclude
 public class User extends BaseEntity{
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore
     @Column(name = "password")
     private String password;
 
@@ -39,9 +43,10 @@ public class User extends BaseEntity{
 //    @JoinTable(name = "user_role", joinColumns={
 //            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
 //            @JoinColumn(name = "role_id") })
-    @OneToMany(fetch = FetchType.EAGER)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
-    private List<Role> roles;
+    private Role role;
 
     @Column(name = "position")
     private String position;

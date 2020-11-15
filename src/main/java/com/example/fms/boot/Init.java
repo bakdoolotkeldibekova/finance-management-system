@@ -16,8 +16,8 @@ import java.util.List;
 @Component
 public class Init implements CommandLineRunner {
 
-//    @Autowired
-//    private UserService userService;
+    @Autowired
+    private UserService userService;
 //    @Autowired
 //    private RoleRepository roleRepository;
 
@@ -25,12 +25,10 @@ public class Init implements CommandLineRunner {
     public void run(String... args) throws Exception {
 //        Role role = new Role("ROLE_ADMIN");
 //        roleRepository.save(role);
-//        role = new Role("ROLE_USER");
-//        roleRepository.save(role);
-
-//        List<Role> roleList = new ArrayList<>();
-//        roleList.add(roleRepository.save(new Role("USER")));
-//        userService.createUser(new User("1812.01022@manas.edu.kg", "12345678", "Bulut", "Alimov", roleList, "student", true, null));
-      //  userService.createAdmin(new UserAdminDTO("sanira@gmail.com", "Sanira", "M", "S12345678", "head of neobis"));
+//        Role role1 = new Role("ROLE_USER");
+//        roleRepository.save(role1);
+//
+//        userService.createUser(new User("1804.01026@manas.edu.kg", "12345678", "Bulut", "Alimov", role1, "student", true, null));
+     //   userService.createAdmin(new UserAdminDTO("sanira@gmail.com", "Sanira", "Madzhikova", "S12345678", "head of neobis"));
     }
 }

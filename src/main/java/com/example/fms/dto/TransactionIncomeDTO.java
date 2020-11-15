@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionIncomeDTO {
-    private Long id;
     private Long toAccount;
     private Long category;
     private BigDecimal balance;

@@ -13,7 +13,6 @@ import java.util.Locale;
 @AllArgsConstructor
 
 public class StaffDTO {
-    private Long id;
     private String name;
     private List<Long> departments;
     private String position;

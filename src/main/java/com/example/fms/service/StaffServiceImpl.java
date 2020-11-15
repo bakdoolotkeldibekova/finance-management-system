@@ -1,7 +1,9 @@
 package com.example.fms.service;
 
 import com.example.fms.dto.StaffDTO;
-import com.example.fms.entity.*;
+import com.example.fms.entity.Department;
+import com.example.fms.entity.Journal;
+import com.example.fms.entity.Staff;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.StaffRepository;
@@ -30,32 +32,41 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public Staff addStaff(StaffDTO newStaff, String userEmail) throws Exception{
-        Staff staff = new Staff();
-        staff.setName(newStaff.getName());
-        staff.setPosition(newStaff.getPosition());
-        staff.setSalary(newStaff.getSalary());
-        staff.setDate(newStaff.getDate());
-        staff.setSalary(newStaff.getSalary());
+    public Staff addStaff(StaffDTO newStaff, String userEmail) {
+        boolean check = false;
         List<Department> dep = new ArrayList<>();
         for (Long item : newStaff.getDepartments()) {
-            dep.add(departmentRepository.findById(item).orElseThrow(Exception::new));
+            Department department = departmentRepository.findById(item).orElse(null);
+            if (department == null){
+                check = true;
+                break;
+            }
+            dep.add(department);
         }
-        staff.setDepartments(dep);
+        if (!check){
+            Staff staff = new Staff();
+            staff.setDepartments(dep);
+            staff.setName(newStaff.getName());
+            staff.setPosition(newStaff.getPosition());
+            staff.setSalary(newStaff.getSalary());
+            staff.setDate(newStaff.getDate());
+            staff.setSalary(newStaff.getSalary());
 
-        Journal journal = new Journal();
-        journal.setTable("STAFF: " + newStaff.getName());
-        journal.setAction("create");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
+            Journal journal = new Journal();
+            journal.setTable("STAFF: " + newStaff.getName());
+            journal.setAction("create");
+            journal.setUser(userService.getByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
 
-        return staffRepository.save(staff);
+            return staffRepository.save(staff);
+        }
+        return null;
     }
 
     @Override
-    public Staff getStaffById(Long id) throws Exception {
-        return staffRepository.findById(id).orElseThrow(Exception::new);
+    public Staff getStaffById(Long id) {
+        return staffRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -64,50 +75,56 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public Staff updateStaffById(StaffDTO newStaff, String userEmail) throws Exception {
-
+    public String updateStaffById(StaffDTO newStaff, Long id, String userEmail) {
+        boolean check = false;
         List<Department> dep = new ArrayList<>();
         for (Long item : newStaff.getDepartments()) {
-            dep.add(departmentRepository.findById(item).orElseThrow(Exception::new));
+            Department department = departmentRepository.findById(item).orElse(null);
+            if (department == null){
+                check = true;
+                break;
+            }
+            dep.add(department);
         }
-        Staff result = staffRepository.findById(newStaff.getId())
-                .map(staff -> {
-                    staff.setName(newStaff.getName());
-                    staff.setDepartments(dep);
-                    staff.setPosition(newStaff.getPosition());
-                    staff.setSalary(newStaff.getSalary());
-                    staff.setDate(newStaff.getDate());
-                    staff.setAccepted(newStaff.getAccepted());
-                    return staffRepository.save(staff);
-                })
-                .orElseThrow(Exception::new);
-
-        Journal journal = new Journal();
-        journal.setTable("STAFF: " + newStaff.getName());
-        journal.setAction("update");
-        journal.setUser(userService.getByEmail(userEmail));
-        journal.setDeleted(false);
-        journalRepository.save(journal);
-
-        return result;
+        if (!check){
+            Staff result = staffRepository.findById(id)
+                    .map(staff -> {
+                        staff.setName(newStaff.getName());
+                        staff.setDepartments(dep);
+                        staff.setPosition(newStaff.getPosition());
+                        staff.setSalary(newStaff.getSalary());
+                        staff.setDate(newStaff.getDate());
+                        staff.setAccepted(newStaff.getAccepted());
+                        return staffRepository.save(staff);
+                    })
+                    .orElse(null);
+            if (result != null) {
+                Journal journal = new Journal();
+                journal.setTable("STAFF: " + newStaff.getName());
+                journal.setAction("update");
+                journal.setUser(userService.getByEmail(userEmail));
+                journal.setDeleted(false);
+                journalRepository.save(journal);
+                return "success";
+            }
+            return "not found staff";
+        }
+        return "not found dep";
     }
 
     @Override
-    public boolean deleteStaffById(Long id, String userEmail) {
+    public Staff deleteStaffById(Long id, String userEmail) {
         Staff staff = staffRepository.findById(id).orElse(null);
         if (staff != null){
             staffRepository.deleteById(id);
-
             Journal journal = new Journal();
             journal.setTable("STAFF: " + staff.getName());
             journal.setAction("delete");
             journal.setUser(userService.getByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-
-            return true;
         }
-        return false;
+        return staff;
     }
 
     @Override
