@@ -5,6 +5,7 @@ import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
 import com.example.fms.service.UserService;
 import com.example.fms.util.JwtUtil;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping
-    public boolean saveUser(@RequestBody UserRegistrDTO userRegistrDTO){
+    public boolean saveUser(@ApiParam("user can register after activating his account") @RequestBody UserRegistrDTO userRegistrDTO){
         return userService.save(userRegistrDTO);
     }
 

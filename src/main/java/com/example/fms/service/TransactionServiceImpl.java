@@ -179,7 +179,7 @@ public class TransactionServiceImpl implements TransactionService{
     @Override
     public List<Transaction> getAllByDateCreatedAfter(String after) {
         return transactionRepository.findAllByDateCreatedAfter(LocalDateTime.parse(after, formatter));
-    }
+     }
 
     @Override
     public List<Transaction> getAllByDateCreatedBefore(String before) {

@@ -6,6 +6,7 @@ import com.example.fms.entity.Staff;
 import com.example.fms.entity.User;
 import com.example.fms.service.StaffService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,16 +30,14 @@ public class StaffController {
     }
 
     @GetMapping("/get")
-    public List<Staff> getAllByParam(HttpServletRequest request, Principal principal){
+    public List<Staff> getAllByParam(@RequestParam(required = false) String name,
+                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
         User user = userService.getByEmail(principal.getName());
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get staff information");
         }
-        String name = request.getParameter("name");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
-
-        Set<Staff> fooSet = new LinkedHashSet<>(staffService.getAll());
+       Set<Staff> fooSet = new LinkedHashSet<>(staffService.getAll());
 
         if (name != null)
             fooSet.retainAll(staffService.getAllStaffByName(name));

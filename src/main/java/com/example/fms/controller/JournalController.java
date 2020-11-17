@@ -5,6 +5,7 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Role;
 import com.example.fms.service.JournalService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -52,17 +53,15 @@ public class JournalController {
     }
 
     @GetMapping("/get")
-    public List<Journal> getAllByParam(HttpServletRequest request, Principal principal){
+    public List<Journal> getAllByParam(@RequestParam String table,
+                                       @RequestParam String action,
+                                       @RequestParam Long userId,
+                                       @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                       @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
         String email = principal.getName();
         boolean isAdmin = false;
         if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             isAdmin = true;
-
-        String table = request.getParameter("table");
-        String action = request.getParameter("action");
-        String user = request.getParameter("user");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
 
         Set<Journal> fooSet;
         if (isAdmin)
@@ -74,8 +73,8 @@ public class JournalController {
             fooSet.retainAll(journalService.getAllByTable(table));
         if (action != null)
             fooSet.retainAll(journalService.getAllByAction(action));
-        if (user != null)
-            fooSet.retainAll(journalService.getAllByUser(Long.parseLong(user)));
+        if (userId != null)
+            fooSet.retainAll(journalService.getAllByUser(userId));
         if (dateAfter != null)
             fooSet.retainAll(journalService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)

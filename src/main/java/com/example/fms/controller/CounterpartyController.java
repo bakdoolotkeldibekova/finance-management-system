@@ -6,6 +6,7 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.CounterpartyService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,15 +31,13 @@ public class CounterpartyController {
     }
 
     @GetMapping("/get")
-    public List<Counterparty> getAllByParam(HttpServletRequest request, Principal principal) {
+    public List<Counterparty> getAllByParam(@RequestParam String name,
+                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
         User user = userService.getByEmail(principal.getName());
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get counterparty information");
         }
-        String name = request.getParameter("name");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
-
         Set<Counterparty> fooSet = new LinkedHashSet<>(counterpartyService.getAll());
 
         if (name != null)

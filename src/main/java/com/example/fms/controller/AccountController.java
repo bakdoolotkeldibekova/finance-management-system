@@ -6,6 +6,7 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.AccountService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,25 +31,23 @@ public class AccountController {
     }
 
     @GetMapping("/get")
-    public List<Account> getAllByParam(HttpServletRequest request, Principal principal){
+    public List<Account> getAllByParam(@RequestParam String name,
+                                       @RequestParam BigDecimal balanceLessThan,
+                                       @RequestParam BigDecimal balanceGreaterThan,
+                                       @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                       @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
         User user = userService.getByEmail(principal.getName());
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get account information");
         }
-        String name = request.getParameter("name");
-        String balanceLessThan = request.getParameter("balanceLessThan");
-        String balanceGreaterThan = request.getParameter("balanceGreaterThan");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
-
         Set<Account> fooSet = new LinkedHashSet<>(accountService.getAll());
 
         if (name != null)
             fooSet.retainAll(accountService.getAllByName(name));
         if (balanceLessThan != null)
-            fooSet.retainAll(accountService.getAllByBalanceLessThan(new BigDecimal(balanceLessThan)));
+            fooSet.retainAll(accountService.getAllByBalanceLessThan(balanceLessThan));
         if (balanceGreaterThan != null)
-            fooSet.retainAll(accountService.getAllByBalanceGreaterThan(new BigDecimal(balanceGreaterThan)));
+            fooSet.retainAll(accountService.getAllByBalanceGreaterThan(balanceGreaterThan));
         if (dateAfter != null)
             fooSet.retainAll(accountService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)

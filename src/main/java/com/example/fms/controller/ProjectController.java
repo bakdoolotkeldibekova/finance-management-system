@@ -6,6 +6,7 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.ProjectService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,15 +30,13 @@ public class ProjectController {
     }
 
     @GetMapping("/get")
-    public @ResponseBody List<Project> getAllByParam(HttpServletRequest request, Principal principal) {
+    public @ResponseBody List<Project> getAllByParam(@RequestParam String name,
+                                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
         User user = userService.getByEmail(principal.getName());
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get project information");
         }
-        String name = request.getParameter("name");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
-
         Set<Project> fooSet = new LinkedHashSet<>(projectService.getAll());
 
         if (name != null)

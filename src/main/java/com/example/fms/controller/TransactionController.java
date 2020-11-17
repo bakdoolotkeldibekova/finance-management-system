@@ -8,6 +8,7 @@ import com.example.fms.entity.Role;
 import com.example.fms.entity.Transaction;
 import com.example.fms.service.TransactionService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,22 +43,21 @@ public class TransactionController {
     }
 
     @GetMapping("/get")
-    public List<Transaction> getAllByParam(HttpServletRequest request, Principal principal) {
+    public List<Transaction> getAllByParam(@RequestParam(required = false) String action,
+                                           @RequestParam(required = false) Long fromAccountId,
+                                           @RequestParam(required = false) Long categoryId,
+                                           @RequestParam(required = false) Long toAccountId,
+                                           @RequestParam(required = false) BigDecimal balanceLessThan,
+                                           @RequestParam(required = false) BigDecimal balanceGreaterThan,
+                                           @RequestParam(required = false) Long userId,
+                                           @RequestParam(required = false) Long projectId,
+                                           @RequestParam(required = false) Long counterpartyId,
+                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
         String email = principal.getName();
         boolean isAdmin = false;
         if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             isAdmin = true;
-        String action = request.getParameter("action");
-        String fromAccount = request.getParameter("fromAccount");
-        String category = request.getParameter("category");
-        String toAccount = request.getParameter("toAccount");
-        String balanceLessThan = request.getParameter("balanceLessThan");
-        String balanceGreaterThan = request.getParameter("balanceGreaterThan");
-        String user = request.getParameter("user");
-        String project = request.getParameter("project");
-        String counterparty = request.getParameter("counterparty");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
 
         Set<Transaction> fooSet;
         if (isAdmin)
@@ -66,22 +67,22 @@ public class TransactionController {
 
         if (action != null)
             fooSet.retainAll(transactionService.getAllByAction(action));
-        if (fromAccount != null)
-            fooSet.retainAll(transactionService.getAllByFromAccount(Long.parseLong(fromAccount)));
-        if (category != null)
-            fooSet.retainAll(transactionService.getAllByCategory(Long.parseLong(category)));
-        if (toAccount != null)
-            fooSet.retainAll(transactionService.getAllByToAccount(Long.parseLong(toAccount)));
+        if (fromAccountId != null)
+            fooSet.retainAll(transactionService.getAllByFromAccount(fromAccountId));
+        if (categoryId != null)
+            fooSet.retainAll(transactionService.getAllByCategory(categoryId));
+        if (toAccountId != null)
+            fooSet.retainAll(transactionService.getAllByToAccount(toAccountId));
         if (balanceLessThan != null)
-            fooSet.retainAll(transactionService.getAllByBalanceLessThanEqual(new BigDecimal(balanceLessThan)));
+            fooSet.retainAll(transactionService.getAllByBalanceLessThanEqual(balanceLessThan));
         if (balanceGreaterThan != null)
-            fooSet.retainAll(transactionService.getAllByBalanceGreaterThanEqual(new BigDecimal(balanceGreaterThan)));
-        if (user != null)
-            fooSet.retainAll(transactionService.getAllByUserId(Long.parseLong(user)));
-        if (project != null)
-            fooSet.retainAll(transactionService.getAllByProject(Long.parseLong(project)));
-        if (counterparty != null)
-            fooSet.retainAll(transactionService.getAllByCounterparty(Long.parseLong(counterparty)));
+            fooSet.retainAll(transactionService.getAllByBalanceGreaterThanEqual(balanceGreaterThan));
+        if (userId != null)
+            fooSet.retainAll(transactionService.getAllByUserId(userId));
+        if (projectId != null)
+            fooSet.retainAll(transactionService.getAllByProject(projectId));
+        if (counterpartyId != null)
+            fooSet.retainAll(transactionService.getAllByCounterparty(counterpartyId));
         if (dateAfter != null)
             fooSet.retainAll(transactionService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)

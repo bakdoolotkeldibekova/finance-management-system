@@ -3,6 +3,9 @@ package com.example.fms.controller;
 import com.example.fms.dto.UserDTO;
 import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +22,7 @@ public class UserController {
     }
 
     @PostMapping("/user")
-    public boolean createUser(@RequestBody UserDTO userDTO){
+    public boolean createUser(@ApiParam(value = "a link is sent to the user's email and by this link the user can activate his account") @RequestBody UserDTO userDTO){
         return userService.createUser(userDTO);
     }
 
@@ -34,22 +37,21 @@ public class UserController {
     }
 
     @GetMapping("/get")
-    public List<User> getAllByParam(HttpServletRequest request){
-        String name = request.getParameter("name");
-        String surname = request.getParameter("surname");
-        String isActive = request.getParameter("isActive");
-        String dateAfter = request.getParameter("dateAfter");
-        String dateBefore = request.getParameter("dateBefore");
-        String position = request.getParameter("position");
+    public List<User> getAllByParam(@RequestParam(required = false) String name,
+                             @RequestParam(required = false) Boolean isActive,
+                             @RequestParam(required = false) String surname,
+                                    @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
+                                    @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore,
+                             @RequestParam(required = false) String position){
 
         Set<User> fooSet = new LinkedHashSet<>(userService.getAll());
 
         if (name != null)
             fooSet.retainAll(userService.getAllByName(name));
+        if (isActive != null)
+            fooSet.retainAll(userService.getAllByActive(isActive));
         if (surname != null)
             fooSet.retainAll(userService.getAllBySurname(surname));
-        if (isActive != null)
-            fooSet.retainAll(userService.getAllByActive(Boolean.parseBoolean(isActive)));
         if (dateAfter != null)
             fooSet.retainAll(userService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)
