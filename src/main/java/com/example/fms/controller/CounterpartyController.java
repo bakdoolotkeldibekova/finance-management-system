@@ -31,7 +31,7 @@ public class CounterpartyController {
     }
 
     @GetMapping("/get")
-    public List<Counterparty> getAllByParam(@RequestParam String name,
+    public List<Counterparty> getAllByParam(@RequestParam(required = false) String name,
                                             @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                             @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
         User user = userService.getByEmail(principal.getName());

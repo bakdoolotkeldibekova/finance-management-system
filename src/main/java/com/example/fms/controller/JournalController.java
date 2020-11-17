@@ -53,9 +53,9 @@ public class JournalController {
     }
 
     @GetMapping("/get")
-    public List<Journal> getAllByParam(@RequestParam String table,
-                                       @RequestParam String action,
-                                       @RequestParam Long userId,
+    public List<Journal> getAllByParam(@RequestParam(required = false) String table,
+                                       @RequestParam(required = false) String action,
+                                       @RequestParam(required = false) Long userId,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
         String email = principal.getName();

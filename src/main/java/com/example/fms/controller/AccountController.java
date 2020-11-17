@@ -31,9 +31,9 @@ public class AccountController {
     }
 
     @GetMapping("/get")
-    public List<Account> getAllByParam(@RequestParam String name,
-                                       @RequestParam BigDecimal balanceLessThan,
-                                       @RequestParam BigDecimal balanceGreaterThan,
+    public List<Account> getAllByParam(@RequestParam(required = false) String name,
+                                       @RequestParam(required = false) BigDecimal balanceLessThan,
+                                       @RequestParam(required = false) BigDecimal balanceGreaterThan,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
         User user = userService.getByEmail(principal.getName());

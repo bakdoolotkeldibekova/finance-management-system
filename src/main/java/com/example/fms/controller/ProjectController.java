@@ -30,7 +30,7 @@ public class ProjectController {
     }
 
     @GetMapping("/get")
-    public @ResponseBody List<Project> getAllByParam(@RequestParam String name,
+    public @ResponseBody List<Project> getAllByParam(@RequestParam(required = false) String name,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
         User user = userService.getByEmail(principal.getName());
