@@ -3,7 +3,9 @@ package com.example.fms.service;
 import com.example.fms.dto.DepartmentDTO;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Department;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -13,12 +15,12 @@ public interface DepartmentService {
     List<Department> getAllByNameContaining(String name);
     List<Department> getAllByDateCreatedBefore(String before);
     List<Department> getAllByDateCreatedAfter(String after);
-    Department addDepartment (DepartmentDTO departmentDTO, String userEmail);
+    ResponseEntity<Department> addDepartment (DepartmentDTO departmentDTO, String userEmail);
 
-    Department getDepartmentById(Long id);
+    ResponseEntity<Department> getDepartmentById(Long id);
 
-    Department updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail);
+    ResponseEntity<Department> updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail);
 
-    Department deleteDepartmentById(Long id, String userEmail);
+    ResponseMessage deleteDepartmentById(Long id, String userEmail);
 
 }

@@ -3,11 +3,16 @@ package com.example.fms.service;
 import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Staff;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.StaffRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,7 +27,7 @@ public class StaffServiceImpl implements StaffService{
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
 
@@ -32,41 +37,36 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public Staff addStaff(StaffDTO newStaff, String userEmail) {
-        boolean check = false;
-        List<Department> dep = new ArrayList<>();
-        for (Long item : newStaff.getDepartments()) {
-            Department department = departmentRepository.findById(item).orElse(null);
-            if (department == null){
-                check = true;
-                break;
-            }
-            dep.add(department);
+    public ResponseEntity<Staff> addStaff(StaffDTO newStaff, String userEmail) {
+        List<Department> departmentList = new ArrayList<>();
+        for (Long id : newStaff.getDepartments()) {
+            Department department = departmentRepository.findById(id)
+                    .orElseThrow(()-> new ResourceNotFoundException("Department id " + id + " not found!"));
+            departmentList.add(department);
         }
-        if (!check){
-            Staff staff = new Staff();
-            staff.setDepartments(dep);
-            staff.setName(newStaff.getName());
-            staff.setPosition(newStaff.getPosition());
-            staff.setSalary(newStaff.getSalary());
-            staff.setDate(newStaff.getDate());
-            staff.setSalary(newStaff.getSalary());
+        Staff staff = new Staff(newStaff.getName(),
+                departmentList,
+                newStaff.getPosition(),
+                newStaff.getSalary(),
+                newStaff.getDate(),
+                newStaff.getAccepted());
+        staffRepository.save(staff);
 
             Journal journal = new Journal();
             journal.setTable("STAFF: " + newStaff.getName());
             journal.setAction("create");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
 
-            return staffRepository.save(staff);
-        }
-        return null;
+           return ResponseEntity.ok().body(staff);
     }
 
     @Override
-    public Staff getStaffById(Long id) {
-        return staffRepository.findById(id).orElse(null);
+    public ResponseEntity<Staff> getStaffById(Long id) {
+        Staff staff = staffRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Staff id " + id + " not found!"));
+        return ResponseEntity.ok().body(staff);
     }
 
     @Override
@@ -75,56 +75,49 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public String updateStaffById(StaffDTO newStaff, Long id, String userEmail) {
-        boolean check = false;
-        List<Department> dep = new ArrayList<>();
-        for (Long item : newStaff.getDepartments()) {
-            Department department = departmentRepository.findById(item).orElse(null);
-            if (department == null){
-                check = true;
-                break;
-            }
-            dep.add(department);
+    public ResponseEntity<Staff> updateStaffById(StaffDTO newStaff, Long id, String userEmail) {
+        List<Department> departmentList = new ArrayList<>();
+        for (Long depId : newStaff.getDepartments()) {
+            Department department = departmentRepository.findById(depId)
+                    .orElseThrow(()-> new ResourceNotFoundException("Department id " + id + " not found!"));
+            departmentList.add(department);
         }
-        if (!check){
-            Staff result = staffRepository.findById(id)
-                    .map(staff -> {
-                        staff.setName(newStaff.getName());
-                        staff.setDepartments(dep);
-                        staff.setPosition(newStaff.getPosition());
-                        staff.setSalary(newStaff.getSalary());
-                        staff.setDate(newStaff.getDate());
-                        staff.setAccepted(newStaff.getAccepted());
-                        return staffRepository.save(staff);
-                    })
-                    .orElse(null);
-            if (result != null) {
-                Journal journal = new Journal();
-                journal.setTable("STAFF: " + newStaff.getName());
-                journal.setAction("update");
-                journal.setUser(userService.getByEmail(userEmail));
-                journal.setDeleted(false);
-                journalRepository.save(journal);
-                return "success";
-            }
-            return "not found staff";
-        }
-        return "not found dep";
+
+        Staff result = staffRepository.findById(id)
+                .map(staff -> {
+                    staff.setName(newStaff.getName());
+                    staff.setDepartments(departmentList);
+                    staff.setPosition(newStaff.getPosition());
+                    staff.setSalary(newStaff.getSalary());
+                    staff.setDate(newStaff.getDate());
+                    staff.setAccepted(newStaff.getAccepted());
+                    return staffRepository.save(staff);
+                }).orElseThrow(() -> new ResourceNotFoundException("Staff id " + id + " not found!"));
+
+        Journal journal = new Journal();
+        journal.setTable("STAFF: " + newStaff.getName());
+        journal.setAction("update");
+        journal.setUser(userRepository.findByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Staff deleteStaffById(Long id, String userEmail) {
-        Staff staff = staffRepository.findById(id).orElse(null);
-        if (staff != null){
-            staffRepository.deleteById(id);
-            Journal journal = new Journal();
-            journal.setTable("STAFF: " + staff.getName());
-            journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
-            journal.setDeleted(false);
-            journalRepository.save(journal);
-        }
-        return staff;
+    public ResponseMessage deleteStaffById(Long id, String userEmail) {
+        Staff staff = staffRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Staff id " + id + " not found!"));
+        staffRepository.deleteById(id);
+
+        Journal journal = new Journal();
+        journal.setTable("STAFF: " + staff.getName());
+        journal.setAction("delete");
+        journal.setUser(userRepository.findByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return new ResponseMessage(HttpStatus.OK.value(), "Staff successfully deleted");
     }
 
     @Override

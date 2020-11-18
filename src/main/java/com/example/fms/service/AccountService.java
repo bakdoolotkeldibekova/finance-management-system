@@ -2,8 +2,10 @@ package com.example.fms.service;
 
 import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.Account;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import javassist.NotFoundException;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,9 +18,9 @@ public interface AccountService {
     List<Account> getAllByBalanceGreaterThan(BigDecimal balance);
     List<Account> getAllByDateCreatedBefore(String before);
     List<Account> getAllByDateCreatedAfter(String after);
-    Account create (AccountDTO accountDTO, String userEmail);
-    Account getAccountById(Long id);
-    Account updateAccountById(AccountDTO accountDTO, Long id, String userEmail);
-    Account deleteAccountById(Long id, String userEmail);
+    ResponseEntity<Account> create (AccountDTO accountDTO, String userEmail);
+    ResponseEntity<Account> getAccountById(Long id);
+    ResponseEntity<Account> updateAccountById(AccountDTO accountDTO, Long id, String userEmail);
+    ResponseMessage deleteAccountById(Long id, String userEmail);
 }
 

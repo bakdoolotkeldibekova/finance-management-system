@@ -2,7 +2,9 @@ package com.example.fms.service;
 
 import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,12 +15,12 @@ public interface CategoryService {
     List<Category> getAllByDateCreatedAfter(String after);
     List<Category> getAllByDateCreatedBefore(String before);
 
-    Category addCategory(CategoryDTO categoryDTO, String userEmail);
+    ResponseEntity<Category> addCategory(CategoryDTO categoryDTO, String userEmail);
 
-    Category getCategoryById(Long id);
+    ResponseEntity<Category> getCategoryById(Long id);
 
-    Category updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail);
+    ResponseEntity<Category> updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail);
 
-    Category deleteCategoryById(Long id, String userEmail);
+    ResponseMessage deleteCategoryById(Long id, String userEmail);
 
 }

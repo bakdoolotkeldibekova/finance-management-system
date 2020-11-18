@@ -3,9 +3,14 @@ package com.example.fms.service;
 import com.example.fms.dto.ProjectDTO;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.Project;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.ProjectRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +24,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
     public List<Project> getAll() {
@@ -43,55 +48,59 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project addProject(ProjectDTO projectDTO, String userEmail) {
+    public ResponseEntity<Project> addProject(ProjectDTO projectDTO, String userEmail) {
         Project project = new Project(projectDTO.getName());
+        projectRepository.save(project);
 
         Journal journal = new Journal();
         journal.setTable("PROJECT: " + project.getName());
         journal.setAction("create");
-        journal.setUser(userService.getByEmail(userEmail));
+        journal.setUser(userRepository.findByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
 
-        return projectRepository.save(project);
+        return ResponseEntity.ok().body(project);
     }
 
     @Override
-    public Project getProjectById(Long id) {
-        return projectRepository.findById(id).orElse(null);
+    public ResponseEntity<Project> getProjectById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project id " + id + " not found!"));
+        return ResponseEntity.ok().body(project);
     }
 
     @Override
-    public Project updateProjectById(ProjectDTO projectDTO, Long id, String userEmail){
+    public ResponseEntity<Project> updateProjectById(ProjectDTO projectDTO, Long id, String userEmail){
         Project result = projectRepository.findById(id)
                 .map(newProject -> {
                     newProject.setName(projectDTO.getName());
                     return projectRepository.save(newProject);
                 })
-                .orElse(null);
-        if (result != null) {
+                .orElseThrow(() -> new ResourceNotFoundException("Project id " + id + " not found!"));
+
             Journal journal = new Journal();
             journal.setTable("PROJECT: " + projectDTO.getName());
             journal.setAction("update");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return result;
+
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Project deleteProjectById(Long id, String userEmail) {
-        Project project = projectRepository.findById(id).orElse(null);
-        if (project != null){
+    public ResponseMessage deleteProjectById(Long id, String userEmail) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project id " + id + " not found!"));
             projectRepository.deleteById(id);
+
             Journal journal = new Journal();
             journal.setTable("PROJECT: " + project.getName());
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return project;
+
+        return new ResponseMessage(HttpStatus.OK.value(), "Project successfully deleted");
     }
 }

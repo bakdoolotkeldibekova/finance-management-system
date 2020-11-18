@@ -3,9 +3,14 @@ package com.example.fms.service;
 import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.CategoryRepository;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService{
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
     public List<Category> getAll() {
@@ -43,54 +48,59 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public Category addCategory(CategoryDTO categoryDTO, String userEmail) {
+    public ResponseEntity<Category> addCategory(CategoryDTO categoryDTO, String userEmail) {
         Category category = new Category(categoryDTO.getName());
+        categoryRepository.save(category);
 
         Journal journal = new Journal();
         journal.setTable("CATEGORY: " + categoryDTO.getName());
         journal.setAction("create");
-        journal.setUser(userService.getByEmail(userEmail));
+        journal.setUser(userRepository.findByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
-        return categoryRepository.save(category);
+
+        return ResponseEntity.ok().body(category);
     }
 
     @Override
-    public Category getCategoryById(Long id){
-        return categoryRepository.findById(id).orElse(null);
+    public ResponseEntity<Category> getCategoryById(Long id){
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Category id " + id + " not found!"));
+        return ResponseEntity.ok().body(category);
     }
 
     @Override
-    public Category updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail){
+    public ResponseEntity<Category> updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail){
         Category result = categoryRepository.findById(id)
                 .map(category -> {
                     category.setName(categoryDTO.getName());
                     return categoryRepository.save(category);
                 })
-                .orElse(null);
-        if (result != null) {
+                .orElseThrow(()->new ResourceNotFoundException("Category id " + id + " not found!"));
+
             Journal journal = new Journal();
             journal.setTable("CATEGORY: " + categoryDTO.getName());
             journal.setAction("update");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return result;
+
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Category deleteCategoryById(Long id, String userEmail) {
-        Category category = categoryRepository.findById(id).orElse(null);
-        if (category != null){
+    public ResponseMessage deleteCategoryById(Long id, String userEmail) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Category id " + id + " not found!"));
+
             categoryRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("CATEGORY: " + category.getName());
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return category;
+
+        return new ResponseMessage(HttpStatus.OK.value(), "Category successfully deleted");
     }
 }

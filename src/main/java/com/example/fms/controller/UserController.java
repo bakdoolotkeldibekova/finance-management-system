@@ -1,14 +1,13 @@
 package com.example.fms.controller;
 
 import com.example.fms.dto.UserDTO;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
-import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.*;
 
@@ -22,17 +21,17 @@ public class UserController {
     }
 
     @PostMapping("/user")
-    public boolean createUser(@ApiParam(value = "a link is sent to the user's email and by this link the user can activate his account") @RequestBody UserDTO userDTO){
+    public ResponseMessage createUser(@ApiParam(value = "a link is sent to the user's email and by this link the user can activate his account") @RequestBody UserDTO userDTO){
         return userService.createUser(userDTO);
     }
 
     @PutMapping("/position/{position}")
-    public User setPosition(@PathVariable String position, Principal principal){
+    public ResponseEntity<User> setPosition(@PathVariable String position, Principal principal){
         return userService.setPosition(position, principal.getName());
     }
 
     @DeleteMapping("/{id}")
-    public boolean deleteByd(@PathVariable Long id){
+    public ResponseMessage deleteByd(@PathVariable Long id){
         return userService.deleteUserById(id);
     }
 
@@ -63,8 +62,13 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    public User getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
+    public ResponseEntity<User> getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
         return userService.getByEmail(email);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getById(@PathVariable Long id){
+        return userService.getById(id);
     }
 
 }

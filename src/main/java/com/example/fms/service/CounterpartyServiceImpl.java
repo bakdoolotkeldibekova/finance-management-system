@@ -3,9 +3,14 @@ package com.example.fms.service;
 import com.example.fms.dto.CounterpartyDTO;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.CounterpartyRepository;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +24,7 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
     public List<Counterparty> getAll() {
@@ -43,55 +48,59 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     }
 
     @Override
-    public Counterparty addCounterparty(CounterpartyDTO counterpartyDTO, String userEmail) {
+    public ResponseEntity<Counterparty> addCounterparty(CounterpartyDTO counterpartyDTO, String userEmail) {
         Counterparty counterparty = new Counterparty(counterpartyDTO.getName());
+        counterpartyRepository.save(counterparty);
 
         Journal journal = new Journal();
         journal.setTable("COUNTERPARTY: " + counterpartyDTO.getName());
         journal.setAction("create");
-        journal.setUser(userService.getByEmail(userEmail));
+        journal.setUser(userRepository.findByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
-        return counterpartyRepository.save(counterparty);
+
+        return ResponseEntity.ok().body(counterparty);
     }
 
     @Override
-    public Counterparty getCounterpartyById(Long id) {
-        return counterpartyRepository.findById(id).orElse(null);
+    public ResponseEntity<Counterparty> getCounterpartyById(Long id) {
+        Counterparty counterparty = counterpartyRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Counterparty id " + id + " not found!"));
+        return ResponseEntity.ok().body(counterparty);
     }
 
     @Override
-    public Counterparty updateCounterpartyById(CounterpartyDTO counterpartyDTO, Long id, String userEmail) {
+    public ResponseEntity<Counterparty> updateCounterpartyById(CounterpartyDTO counterpartyDTO, Long id, String userEmail) {
          Counterparty result = counterpartyRepository.findById(id)
                 .map(counterparty -> {
                     counterparty.setName(counterpartyDTO.getName());
                     return counterpartyRepository.save(counterparty);
                 })
-                .orElse(null);
-        if (result != null) {
+                 .orElseThrow(()->new ResourceNotFoundException("Counterparty id " + id + " not found!"));
+
             Journal journal = new Journal();
             journal.setTable("COUNTERPARTY: " + counterpartyDTO.getName());
             journal.setAction("update");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
 
-        return result;
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Counterparty deleteCounterpartyById(Long id, String userEmail) {
-        Counterparty counterparty = counterpartyRepository.findById(id).orElse(null);
-        if (counterparty != null){
+    public ResponseMessage deleteCounterpartyById(Long id, String userEmail) {
+        Counterparty counterparty = counterpartyRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Counterparty id " + id + " not found!"));
+
             counterpartyRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("COUNTERPARTY: " + counterparty.getName());
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return counterparty;
+
+        return new ResponseMessage(HttpStatus.OK.value(),"Counterparty successfully deleted");
     }
 }

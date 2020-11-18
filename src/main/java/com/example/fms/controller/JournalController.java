@@ -2,16 +2,14 @@ package com.example.fms.controller;
 
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Role;
+import com.example.fms.repository.UserRepository;
 import com.example.fms.service.JournalService;
 import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.*;
 
@@ -19,37 +17,25 @@ import java.util.*;
 @RequestMapping("/journal")
 public class JournalController {
     private final JournalService journalService;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public JournalController(JournalService journalService, UserService userService) {
+    public JournalController(JournalService journalService, UserRepository userRepository) {
         this.journalService = journalService;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @DeleteMapping("/{id}")
     public ResponseMessage deleteById(@PathVariable Long id, Principal principal) {
-        Journal journal = journalService.deleteById(id, principal.getName());
-        if (journal == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Journal id " + id + " not found!");
-        return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
+        return journalService.deleteById(id, principal.getName());
     }
 
     @GetMapping("/{id}")
-    public Journal getById(@PathVariable("id") Long id, Principal principal) {
+    public ResponseEntity<Journal> getById(@PathVariable("id") Long id, Principal principal) {
         String email = principal.getName();
-        boolean isAdmin = false;
-        if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
-            isAdmin = true;
-
-        if (isAdmin) return journalService.getById(id);
-        else {
-            Journal journal = journalService.getById(id);
-            if (journal.isDeleted())
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Journal id " + id + " not found!");
-            else return journal;
-        }
-
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
+            return journalService.getByIdForAdmin(id);
+        return journalService.getByIdForUser(id);
     }
 
     @GetMapping("/get")
@@ -58,13 +44,9 @@ public class JournalController {
                                        @RequestParam(required = false) Long userId,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
-        String email = principal.getName();
-        boolean isAdmin = false;
-        if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
-            isAdmin = true;
-
         Set<Journal> fooSet;
-        if (isAdmin)
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             fooSet = new LinkedHashSet<>(journalService.getAllForAdmin());
         else
             fooSet = new LinkedHashSet<>(journalService.getAllForUser());

@@ -3,10 +3,15 @@ package com.example.fms.service;
 import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.Account;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.AccountRepository;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,7 +26,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
     public List<Account> getAll() {
@@ -55,58 +60,62 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account create(AccountDTO accountDTO, String userEmail) {
+    public ResponseEntity<Account> create(AccountDTO accountDTO, String userEmail) {
         Account account = new Account(accountDTO.getName(), accountDTO.getBalance());
+        accountRepository.save(account);
+
         Journal journal = new Journal();
         journal.setTable("ACCOUNT: " + account.getName());
         journal.setAction("create");
-        User user = userService.getByEmail(userEmail);
+        User user = userRepository.findByEmail(userEmail);
         journal.setUser(user);
         journal.setDeleted(false);
         journalRepository.save(journal);
 
-        return accountRepository.save(account);
+        return ResponseEntity.ok().body(account);
     }
 
     @Override
-    public Account getAccountById(Long id) {
-         return accountRepository.findById(id).orElse(null);
+    public ResponseEntity<Account> getAccountById(Long id) {
+         Account account = accountRepository.findById(id)
+                 .orElseThrow(()->new ResourceNotFoundException("Account id " + id + " not found!"));
+         return ResponseEntity.ok().body(account);
     }
 
     @Override
-    public Account updateAccountById(AccountDTO accountDTO, Long id, String userEmail){
+    public ResponseEntity<Account> updateAccountById(AccountDTO accountDTO, Long id, String userEmail){
         Account result = accountRepository.findById(id)
                 .map(account -> {
                     account.setName(accountDTO.getName());
                     account.setBalance(accountDTO.getBalance());
                     return accountRepository.save(account);
                 })
-                .orElse(null);
-        if (result != null) {
+                .orElseThrow(()->new ResourceNotFoundException("Account id " + id + " not found!"));
+            //на нулл не нужно проверять
             Journal journal = new Journal();
             journal.setTable("ACCOUNT: " + accountDTO.getName());
             journal.setAction("update");
-            User user = userService.getByEmail(userEmail);
+            User user = userRepository.findByEmail(userEmail);
             journal.setUser(user);
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
 
-        return result;
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Account deleteAccountById(Long id, String userEmail) {
-        Account account = accountRepository.findById(id).orElse(null);
-        if (account != null){
+    public ResponseMessage deleteAccountById(Long id, String userEmail) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Account id " + id + " not found!"));
+
             accountRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("ACCOUNT: " + account.getName());
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return account;
+
+        return new ResponseMessage(HttpStatus.OK.value(), "Account successfully deleted");
     }
 }

@@ -8,6 +8,7 @@ import com.example.fms.service.ProjectService;
 import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,21 +23,16 @@ import java.util.Set;
 @RequestMapping("/project")
 public class ProjectController {
     private final ProjectService projectService;
-    private final UserService userService;
 
-    ProjectController(ProjectService projectService, UserService userService) {
+    ProjectController(ProjectService projectService) {
         this.projectService = projectService;
-        this.userService = userService;
     }
 
     @GetMapping("/get")
     public @ResponseBody List<Project> getAllByParam(@RequestParam(required = false) String name,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
-                                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get project information");
-        }
+                                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
+
         Set<Project> fooSet = new LinkedHashSet<>(projectService.getAll());
 
         if (name != null)
@@ -50,52 +46,23 @@ public class ProjectController {
     }
 
     @PostMapping("/add")
-    public ResponseMessage addProject(@RequestBody ProjectDTO projectDTO, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add project");
-        }
-        projectService.addProject(projectDTO, principal.getName());
-        return new ResponseMessage(HttpStatus.OK.value(), "Project successfully saved");
+    public ResponseEntity<Project> addProject(@RequestBody ProjectDTO projectDTO, Principal principal) {
+        return projectService.addProject(projectDTO, principal.getName());
     }
 
     @GetMapping("/{id}")
-    public Project getProject(@PathVariable Long id, Principal principal){
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get project information");
-        }
-        Project project = projectService.getProjectById(id);
-        if (project != null) {
-            return project;
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + id + " not found!");
+    public ResponseEntity<Project> getById(@PathVariable Long id){
+        return projectService.getProjectById(id);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseMessage updateProject(@RequestBody ProjectDTO projectDTO, @PathVariable Long id, Principal principal) throws Exception {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to change project information");
-        }
-        Project project1 = projectService.updateProjectById(projectDTO, id, principal.getName());
-        if (project1 != null) {
-            return new ResponseMessage(HttpStatus.OK.value(), "Project successfully updated");
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + id + " not found!");
+    public ResponseEntity<Project> updateProject(@RequestBody ProjectDTO projectDTO, @PathVariable Long id, Principal principal){
+        return projectService.updateProjectById(projectDTO, id, principal.getName());
     }
 
     @DeleteMapping("/{id}")
     public ResponseMessage deleteProject(@PathVariable Long id, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to delete project information");
-        }
-        Project project = projectService.deleteProjectById(id, principal.getName());
-        if (project != null) {
-            return new ResponseMessage(HttpStatus.OK.value(), "Project successfully deleted");
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project id " + id + " not found!");
+        return projectService.deleteProjectById(id, principal.getName());
     }
 
 }

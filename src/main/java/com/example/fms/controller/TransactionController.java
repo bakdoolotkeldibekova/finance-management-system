@@ -4,19 +4,17 @@ import com.example.fms.dto.TransactionExpenseDTO;
 import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Role;
 import com.example.fms.entity.Transaction;
+import com.example.fms.repository.UserRepository;
 import com.example.fms.service.TransactionService;
-import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,19 +25,19 @@ import java.util.Set;
 public class TransactionController {
 
     private final TransactionService transactionService;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
-    TransactionController(TransactionService transactionService, UserService userService) {
+    TransactionController(TransactionService transactionService, UserRepository userRepository) {
         this.transactionService = transactionService;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/{id}")
-    public Transaction getById(@PathVariable("id") Long id){
-        Transaction transaction =transactionService.getTransactionById(id);
-        if (transaction == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
-        return transaction;
+    public ResponseEntity<Transaction> getById(@PathVariable("id") Long id, Principal principal){
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
+            return transactionService.getByIdForAdmin(id);
+        else return transactionService.getByIdForUser(id);
     }
 
     @GetMapping("/get")
@@ -54,13 +52,9 @@ public class TransactionController {
                                            @RequestParam(required = false) Long counterpartyId,
                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
-        String email = principal.getName();
-        boolean isAdmin = false;
-        if (userService.getByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
-            isAdmin = true;
-
         Set<Transaction> fooSet;
-        if (isAdmin)
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             fooSet = new LinkedHashSet<>(transactionService.getAllForAdmin());
         else
             fooSet = new LinkedHashSet<>(transactionService.getAllForUser());
@@ -92,71 +86,62 @@ public class TransactionController {
     }
 
     @PostMapping("/addIncome")
-    public ResponseMessage addIncome (@RequestBody TransactionIncomeDTO transactionIncomeDTO, Principal principal){
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add transaction");
-        }
-        transactionService.addIncome(transactionIncomeDTO, principal.getName());
-        return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully saved");
+    public ResponseEntity<Transaction> addIncome (@RequestBody TransactionIncomeDTO transactionIncomeDTO, Principal principal){
+        return transactionService.addIncome(transactionIncomeDTO, principal.getName());
     }
 
     @PostMapping("/addExpense")
-    public ResponseMessage addExpense (@RequestBody TransactionExpenseDTO transactionExpenseDTO, Principal principal){
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add transaction");
-        }
-        transactionService.addExpense(transactionExpenseDTO, principal.getName());
-        return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully saved");
+    public ResponseEntity<Transaction> addExpense (@RequestBody TransactionExpenseDTO transactionExpenseDTO, Principal principal){
+       return transactionService.addExpense(transactionExpenseDTO, principal.getName());
     }
 
     @PostMapping("/addRemittance")
-    public ResponseMessage addRemittance (@RequestBody TransactionRemittanceDTO transactionRemittanceDTO, Principal principal){
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add transaction");
-        }
-        transactionService.addRemittance(transactionRemittanceDTO, principal.getName());
-        return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully saved");
+    public ResponseEntity<Transaction> addRemittance (@RequestBody TransactionRemittanceDTO transactionRemittanceDTO, Principal principal){
+        return transactionService.addRemittance(transactionRemittanceDTO, principal.getName());
     }
 
     @PutMapping("/updateIncome/{id}")
-    public ResponseMessage updateIncome (@RequestBody TransactionIncomeDTO newTransaction, @PathVariable Long id, Principal principal) {
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to update transaction");
+    public ResponseEntity<Transaction> updateIncome (@RequestBody TransactionIncomeDTO newTransaction, @PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
+            Transaction transaction = transactionService.getByIdForUser(id).getBody();
+            if (transaction == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
         }
-        Transaction transaction =transactionService.updateIncomeById(newTransaction, id, principal.getName());
-        if (transaction != null)
-            return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully updated");
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return transactionService.updateIncomeById(newTransaction, id, principal.getName());
     }
 
     @PutMapping("/updateExpense/{id}")
-    public ResponseMessage updateExpense (@RequestBody TransactionExpenseDTO newTransaction, @PathVariable Long id, Principal principal) {
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to update transaction");
+    public ResponseEntity<Transaction> updateExpense (@RequestBody TransactionExpenseDTO newTransaction, @PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
+            Transaction transaction = transactionService.getByIdForUser(id).getBody();
+            if (transaction == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
         }
-        Transaction transaction = transactionService.updateExpenseById(newTransaction, id, principal.getName());
-        if (transaction != null)
-            return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully updated");
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return transactionService.updateExpenseById(newTransaction, id, principal.getName());
     }
 
     @PutMapping("/updateRemittance/{id}")
-    public ResponseMessage updateRemittance (@RequestBody TransactionRemittanceDTO newTransaction, @PathVariable Long id, Principal principal) {
-        if (userService.getByEmail(principal.getName()) == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to update transaction");
+    public ResponseEntity<Transaction> updateRemittance (@RequestBody TransactionRemittanceDTO newTransaction, @PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
+            Transaction transaction = transactionService.getByIdForUser(id).getBody();
+            if (transaction == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
         }
-        Transaction transaction = transactionService.updateRemittanceById(newTransaction, id, principal.getName());
-        if (transaction != null)
-            return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully updated");
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        return transactionService.updateRemittanceById(newTransaction, id, principal.getName());
     }
 
     @DeleteMapping("/{id}")
     public ResponseMessage deleteTransaction (@PathVariable Long id, Principal principal) {
-        Transaction transaction = transactionService.deleteTransactionById(id, principal.getName());
-        if (transaction != null)
-            return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully deleted");
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        String email = principal.getName();
+        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
+            Transaction transaction = transactionService.getByIdForUser(id).getBody();
+            if (transaction == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
+        }
+        return transactionService.deleteTransactionById(id, principal.getName());
     }
 
 }

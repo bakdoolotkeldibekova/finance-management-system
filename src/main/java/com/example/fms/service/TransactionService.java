@@ -3,7 +3,9 @@ package com.example.fms.service;
 import com.example.fms.dto.TransactionExpenseDTO;
 import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Transaction;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,13 +16,16 @@ public interface TransactionService {
     List<Transaction> getAllForAdmin();
     List<Transaction> getAllForUser();
 
-    Transaction addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
+  //  ResponseEntity<Transaction> addTransaction(Object object, String userEmail);
 
-    Transaction addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail);
+    ResponseEntity<Transaction> addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
 
-    Transaction addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail);
+    ResponseEntity<Transaction> addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail);
 
-    Transaction getTransactionById (Long id);
+    ResponseEntity<Transaction> addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail);
+
+    ResponseEntity<Transaction> getByIdForUser (Long id);
+    ResponseEntity<Transaction> getByIdForAdmin (Long id);
 
     List<Transaction> getAllByAction(String action);
 
@@ -39,9 +44,9 @@ public interface TransactionService {
     List<Transaction> getAllByProject(Long projectId);
     List<Transaction> getAllByCounterparty(Long counterpartyId);
 
-    Transaction updateIncomeById(TransactionIncomeDTO newTransaction, Long id, String userEmail);
-    Transaction updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail);
-    Transaction updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail);
+    ResponseEntity<Transaction> updateIncomeById(TransactionIncomeDTO newTransaction, Long id, String userEmail);
+    ResponseEntity<Transaction> updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail);
+    ResponseEntity<Transaction> updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail);
 
-    Transaction deleteTransactionById (Long id, String userEmail);
+    ResponseMessage deleteTransactionById (Long id, String userEmail);
 }

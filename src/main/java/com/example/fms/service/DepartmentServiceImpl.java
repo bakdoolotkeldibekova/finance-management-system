@@ -3,9 +3,14 @@ package com.example.fms.service;
 import com.example.fms.dto.DepartmentDTO;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +24,7 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
     public List<Department> getAll() {
@@ -43,54 +48,59 @@ public class DepartmentServiceImpl implements DepartmentService{
     }
 
     @Override
-    public Department addDepartment(DepartmentDTO departmentDTO, String userEmail) {
+    public ResponseEntity<Department> addDepartment(DepartmentDTO departmentDTO, String userEmail) {
         Department department = new Department(departmentDTO.getName());
+        departmentRepository.save(department);
 
         Journal journal = new Journal();
         journal.setTable("DEPARTMENT: " + departmentDTO.getName());
         journal.setAction("create");
-        journal.setUser(userService.getByEmail(userEmail));
+        journal.setUser(userRepository.findByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
-        return departmentRepository.save(department);
+
+        return ResponseEntity.ok().body(department);
     }
 
     @Override
-    public Department getDepartmentById(Long id) {
-        return departmentRepository.findById(id).orElse(null);
+    public ResponseEntity<Department> getDepartmentById(Long id) {
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Department id " + id + " not found!"));
+        return ResponseEntity.ok().body(department);
     }
 
     @Override
-    public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail) {
+    public ResponseEntity<Department> updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail) {
         Department result = departmentRepository.findById(id)
                 .map(department -> {
                     department.setName(departmentDTO.getName());
                     return departmentRepository.save(department);
                 })
-                .orElse(null);
-        if (result != null) {
+                .orElseThrow(()->new ResourceNotFoundException("Department id " + id + " not found!"));
+
             Journal journal = new Journal();
             journal.setTable("DEPARTMENT: " + departmentDTO.getName());
             journal.setAction("update");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return result;
+
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
-    public Department deleteDepartmentById(Long id, String userEmail) {
-        Department department = departmentRepository.findById(id).orElse(null);
-        if (department != null){
+    public ResponseMessage deleteDepartmentById(Long id, String userEmail) {
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Department id " + id + " not found!"));
             departmentRepository.deleteById(id);
+
             Journal journal = new Journal();
             journal.setTable("DEPARTMENT: " + department.getName());
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return department;
+
+        return new ResponseMessage(HttpStatus.OK.value(), "Department successfully deleted");
     }
 }

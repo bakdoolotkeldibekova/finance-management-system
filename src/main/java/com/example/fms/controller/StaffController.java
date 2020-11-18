@@ -3,15 +3,11 @@ package com.example.fms.controller;
 import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Staff;
-import com.example.fms.entity.User;
 import com.example.fms.service.StaffService;
-import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -22,21 +18,16 @@ import java.util.Set;
 @RequestMapping("/staff")
 public class StaffController {
     private final StaffService staffService;
-    private final UserService userService;
 
-    StaffController(StaffService staffService, UserService userService) {
+    StaffController(StaffService staffService) {
         this.staffService = staffService;
-        this.userService = userService;
     }
 
     @GetMapping("/get")
     public List<Staff> getAllByParam(@RequestParam(required = false) String name,
                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
-                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get staff information");
-        }
+                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore){
+
        Set<Staff> fooSet = new LinkedHashSet<>(staffService.getAll());
 
         if (name != null)
@@ -50,59 +41,24 @@ public class StaffController {
     }
 
     @PostMapping("/add")
-    public ResponseMessage addStaff(@RequestBody StaffDTO newStaff, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to add staff");
-        }
-        Staff staff = staffService.addStaff(newStaff, principal.getName());
-        if (staff != null) {
-            return new ResponseMessage(HttpStatus.OK.value(), "Staff successfully updated");
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department id not found!");
+    public ResponseEntity<Staff> addStaff(@RequestBody StaffDTO newStaff, Principal principal) {
+        return staffService.addStaff(newStaff, principal.getName());
     }
 
     @GetMapping("/{id}")
-    public Staff getStaff(@PathVariable Long id, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to get staff information");
-        }
-        Staff staff = staffService.getStaffById(id);
-        if (staff != null) {
-            return staff;
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Staff id " + id + " not found!");
+    public ResponseEntity<Staff> getById(@PathVariable Long id) {
+        return staffService.getStaffById(id);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseMessage updateStaff (@RequestBody StaffDTO staffDTO, @PathVariable Long id, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to change staff information");
-        }
-        String staff = staffService.updateStaffById(staffDTO, id, principal.getName());
-        if (staff.equals("success"))
-            return new ResponseMessage(HttpStatus.OK.value(), "Staff successfully updated");
-        else if (staff.equals("not found staff"))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Staff id " + id + " not found!");
-        else
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department id not found!");
+    public ResponseEntity<Staff> updateStaff (@RequestBody StaffDTO staffDTO, @PathVariable Long id, Principal principal) {
+        return staffService.updateStaffById(staffDTO, id, principal.getName());
     }
 
     @DeleteMapping("/{id}")
     public ResponseMessage deleteStaff(@PathVariable Long id, Principal principal) {
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorize to delete staff information");
-        }
-        Staff staff = staffService.deleteStaffById(id, principal.getName());
-        if (staff != null) {
-            return new ResponseMessage(HttpStatus.OK.value(), "Staff successfully deleted");
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Staff id " + id + " not found!");
+        return staffService.deleteStaffById(id, principal.getName());
     }
-
 }
 
 

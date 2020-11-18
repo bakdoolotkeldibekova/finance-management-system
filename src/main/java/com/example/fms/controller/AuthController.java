@@ -3,10 +3,13 @@ package com.example.fms.controller;
 import com.example.fms.dto.UserAuthDTO;
 import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
 import com.example.fms.util.JwtUtil;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -24,22 +27,22 @@ public class AuthController {
     private UserService userService;
 
     @GetMapping("/activate/{code}")
-    public String  activate(@PathVariable String code) {
+    public ResponseMessage activate(@PathVariable String code) {
         return userService.activateUser(code);
     }
 
     @PostMapping
-    public boolean saveUser(@ApiParam("user can register after activating his account") @RequestBody UserRegistrDTO userRegistrDTO){
+    public ResponseEntity<User> saveUser(@ApiParam("user can register after activating his account") @RequestBody UserRegistrDTO userRegistrDTO){
         return userService.save(userRegistrDTO);
     }
 
     @PutMapping("/changePassword")
-    public boolean changePassword(@RequestBody UserAuthDTO userAuthDTO){
+    public ResponseEntity<User> changePassword(@RequestBody UserAuthDTO userAuthDTO){
         return userService.changePassword(userAuthDTO.getEmail(), userAuthDTO.getPassword());
     }
 
     @PostMapping("/forgotPassword/{email}") //на email юзера приходит уникальная ссылка со сроком истечения в 5 минут для изменения пароля на почту.
-    public boolean sendForgotPassword(@PathVariable String email){
+    public ResponseMessage sendForgotPassword(@PathVariable String email){
         return userService.sendForgotPassword(email);
     }
 

@@ -4,12 +4,16 @@ import com.example.fms.dto.UserAdminDTO;
 import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Role;
 import com.example.fms.entity.User;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.RoleRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,27 +35,27 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
 
     @Override
-    public boolean save(UserRegistrDTO userRegistrDTO) {
+    public ResponseEntity<User> save(UserRegistrDTO userRegistrDTO) {
         User user = userRepository.findByEmail(userRegistrDTO.getEmail());
-        if (user != null){
-            user.setPassword(encoder.encode(userRegistrDTO.getPassword()));
-            user.setName(userRegistrDTO.getName());
-            user.setSurname(userRegistrDTO.getSurname());
-            userRepository.save(user);
+        if (user == null)
+            throw  new ResourceNotFoundException("User email " + userRegistrDTO.getEmail() + " not found!");
+        user.setPassword(encoder.encode(userRegistrDTO.getPassword()));
+        user.setName(userRegistrDTO.getName());
+        user.setSurname(userRegistrDTO.getSurname());
+        userRepository.save(user);
 
-            Journal journal = new Journal();
-            journal.setTable("USER: " + user.getEmail());
-            journal.setAction("create");
-            journal.setUser(null);
-            journal.setDeleted(false);
-            journalRepository.save(journal);
-            return true;
-        }
-        return false;
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("create");
+        journal.setUser(null);
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return ResponseEntity.ok().body(user);
     }
 
     @Override
-    public boolean createUser(UserDTO userDTO) {
+    public ResponseMessage createUser(UserDTO userDTO) {
         User user = new User();
         user.setEmail(userDTO.getEmail());
       //  user.setDepartments(userDTO.getDepartmentList());
@@ -64,9 +68,9 @@ public class UserServiceImpl implements UserService {
                 user.getActivationCode();
         if(mailService.send(user.getEmail(), "Activation Code", message)){
             userRepository.save(user);
-            return true;
+            return new ResponseMessage(HttpStatus.OK.value(), "Invitation sent successfully");
         }
-        return false;
+        return new ResponseMessage(HttpStatus.BAD_GATEWAY.value(), "invitation was not sent");
     }
 
     @Override
@@ -84,44 +88,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String activateUser(String code) {
+    public ResponseMessage activateUser(String code) {
         User user = userRepository.findByActivationCode(code);
         if (user == null) {
-            return "error";
+            return new ResponseMessage(HttpStatus.NOT_FOUND.value(), "could not activate user, " + code + " this code is not true");
         }
         user.setActivationCode(null);
         user.setActive(true);
         userRepository.save(user);
-        return user.getEmail();
+        return new ResponseMessage(HttpStatus.OK.value(), user.getEmail() + " successfully activated");
     }
 
     @Override
-    public boolean sendForgotPassword(String email) {
+    public ResponseMessage sendForgotPassword(String email) {
         User user = userRepository.findByEmail(email);
+        if (user == null)
+            return new ResponseMessage(HttpStatus.NOT_FOUND.value(), "User email " + email + " not found!");
         String message = "Hello, ! \n" +
                 " Please, visit next link to change your password: http:localhost:8080/registr/changePassword";
-
-        //System.out.println("eeeeeee: " + email + "  :  "+ user);
-        return user != null && mailService.send(user.getEmail(), "Change password", message);
+        if (!mailService.send(user.getEmail(), "Change password", message))
+            return new ResponseMessage(HttpStatus.BAD_GATEWAY.value(), "smtp server failure, request was not sent");
+        return new ResponseMessage(HttpStatus.OK.value(), "Successfully sent");
     }
 
     @Override
-    public boolean changePassword(String email, String password) {
+    public ResponseEntity<User> changePassword(String email, String password) {
         User user = userRepository.findByEmail(email);
-        if (user != null){
-            user.setPassword(encoder.encode(password));
-            userRepository.save(user);
+        if (user == null)
+            throw new ResourceNotFoundException("User email " + email + " not found!");
 
-            Journal journal = new Journal();
-            journal.setTable("USER: " + user.getEmail());
-            journal.setAction("changed password");
-            journal.setUser(null);
-            journal.setDeleted(false);
-            journalRepository.save(journal);
+        user.setPassword(encoder.encode(password));
+        userRepository.save(user);
 
-            return true;
-        }
-        return false;
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("changed password");
+        journal.setUser(null);
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+        return ResponseEntity.ok().body(user);
     }
 
     @Override
@@ -166,43 +171,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-/*
-    @Override
-    public User getEmail(String email) {
-        Map<String, Object> addUser = new HashMap<>();
+    public ResponseEntity<User> getByEmail(String email) {
         User user = userRepository.findByEmail(email);
-        addUser.put("id", user.getId());
-        addUser.put("dateCreated", user.getDateCreated());
-        addUser.put("dateUpdated", user.getDateUpdated());
-        addUser.put("email", user.getEmail());
-        addUser.put("name", user.getName() + " " + user.getSurname());
-        addUser.put("position", user.getPosition());
-
-        Gson gson = new Gson();
-        JsonElement jsonElement = gson.toJsonTree(addUser);
-        return gson.fromJson(jsonElement, User.class);
+        if (user == null)
+            throw  new ResourceNotFoundException("User email " + email + " not found!");
+        return ResponseEntity.ok().body(user);
     }
 
- */
     @Override
-    public boolean deleteUserById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
+    public ResponseEntity<User> getById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("User id " + id +" not found!"));
+        return ResponseEntity.ok().body(user);
+    }
 
-            userRepository.deleteById(id);
+    @Override
+    public ResponseMessage deleteUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found!"));
+        userRepository.deleteById(id);
 
-            Journal journal = new Journal();
-            journal.setTable("USER: " + user.getEmail());
-            journal.setAction("delete");
-            journal.setUser(null);
-            journal.setDeleted(false);
-            journalRepository.save(journal);
-            return true;
-        }
-        return false;
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("delete");
+        journal.setUser(null);
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return new ResponseMessage(HttpStatus.OK.value(), "User successfully deleted");
     }
 
     @Override //for Init class
@@ -212,9 +208,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User setPosition(String position, String userEmail) {
+    public ResponseEntity<User> setPosition(String position, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
+        if (user == null)
+            throw  new ResourceNotFoundException("User email " + userEmail + " not found!");
         user.setPosition(position);
+        userRepository.save(user);
 
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
@@ -223,8 +222,6 @@ public class UserServiceImpl implements UserService {
         journal.setDeleted(false);
         journalRepository.save(journal);
 
-        return userRepository.save(user);
+        return ResponseEntity.ok().body(user);
     }
-
-
 }

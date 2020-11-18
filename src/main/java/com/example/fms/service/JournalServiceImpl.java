@@ -1,8 +1,13 @@
 package com.example.fms.service;
 
 import com.example.fms.entity.Journal;
+import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,11 +19,22 @@ public class JournalServiceImpl implements JournalService {
     @Autowired
     private JournalRepository journalRepository;
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Override
-    public Journal getById(Long id){
-        return journalRepository.findById(id).orElse(null);
+    public ResponseEntity<Journal> getByIdForAdmin(Long id){
+        Journal journal = journalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
+        return ResponseEntity.ok().body(journal);
+    }
+
+    @Override
+    public ResponseEntity<Journal> getByIdForUser(Long id){
+        Journal journal = journalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
+        if (journal.isDeleted())
+            throw new ResourceNotFoundException("Journal id " + id + " not found!");
+        return ResponseEntity.ok().body(journal);
     }
 
     @Override
@@ -61,18 +77,17 @@ public class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public Journal deleteById(Long id, String userEmail) {
-        Journal journal1 = journalRepository.findById(id).orElse(null);
-        if (journal1 != null) {
+    public ResponseMessage deleteById(Long id, String userEmail) {
+        Journal journal1 = journalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
             journal1.setDeleted(true);
 
             Journal journal = new Journal();
             journal.setTable("JOURNAL");
             journal.setAction("delete");
-            journal.setUser(userService.getByEmail(userEmail));
+            journal.setUser(userRepository.findByEmail(userEmail));
             journal.setDeleted(false);
             journalRepository.save(journal);
-        }
-        return journal1;
+       return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
     }
 }
