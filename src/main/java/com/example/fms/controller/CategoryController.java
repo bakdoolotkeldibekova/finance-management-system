@@ -5,6 +5,8 @@ import com.example.fms.entity.Category;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.service.CategoryService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +25,8 @@ public class CategoryController {
     }
 
     @GetMapping("/get")
-    public List<Category> getAllByParam(@RequestParam(required = false) String name,
+    public Page<Category> getAllByParam(Pageable pageable,
+                                        @RequestParam(required = false) String name,
                                         @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                         @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
@@ -36,7 +39,8 @@ public class CategoryController {
         if (dateBefore != null)
             fooSet.retainAll(categoryService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Category> list = new ArrayList<>(fooSet);
+        return categoryService.getByPage(list, pageable);
     }
 
     @GetMapping("/{categoryId}")

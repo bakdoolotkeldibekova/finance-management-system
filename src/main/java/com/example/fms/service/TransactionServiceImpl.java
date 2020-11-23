@@ -9,6 +9,9 @@ import com.example.fms.exception.NotEnoughBalanceException;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -538,5 +541,11 @@ public class TransactionServiceImpl implements TransactionService{
         journalRepository.save(journal);
 
         return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully deleted");
+    }
+    @Override
+    public Page<Transaction> getByPage(List<Transaction> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<Transaction>(list.subList(start, end), pageable, list.size());
     }
 }

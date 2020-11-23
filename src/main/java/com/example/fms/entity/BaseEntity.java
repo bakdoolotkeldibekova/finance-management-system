@@ -16,6 +16,7 @@ public class BaseEntity {
     private Long id;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdated;
+  //  private boolean deleted;
 
     @PrePersist
     public void persistCreate(){

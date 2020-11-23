@@ -1,15 +1,15 @@
 package com.example.fms.service;
 
 import com.example.fms.dto.AccountDTO;
-import com.example.fms.entity.Account;
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.User;
+import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.AccountRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,6 +31,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<Account> getAll() {
         return accountRepository.findAll();
+    }
+
+    @Override
+    public Page<Account> getByPage(List<Account> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<Account>(list.subList(start, end), pageable, list.size());
     }
 
     @Override

@@ -5,6 +5,9 @@ import com.example.fms.entity.Account;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.service.AccountService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,10 @@ public class AccountController {
         this.accountService = accountService;
     }
 
+
     @GetMapping("/get")
-    public List<Account> getAllByParam(@RequestParam(required = false) String name,
+    public Page<Account> getAllByParam(Pageable pageable,
+                                       @RequestParam(required = false) String name,
                                        @RequestParam(required = false) BigDecimal balanceLessThan,
                                        @RequestParam(required = false) BigDecimal balanceGreaterThan,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
@@ -42,7 +47,8 @@ public class AccountController {
             fooSet.retainAll(accountService.getAllByDateCreatedAfter(dateAfter));
         if (dateBefore != null)
             fooSet.retainAll(accountService.getAllByDateCreatedBefore(dateBefore));
-        return new ArrayList<>(fooSet);
+        List<Account> list = new ArrayList<>(fooSet);
+        return accountService.getByPage(list, pageable);
     }
 
     @GetMapping("/{accountId}")

@@ -4,11 +4,15 @@ import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.ResponseMessage;
+import com.example.fms.entity.Transaction;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.CategoryRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,13 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     public List<Category> getAll() {
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public Page<Category> getByPage(List<Category> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<Category>(list.subList(start, end), pageable, list.size());
     }
 
     @Override

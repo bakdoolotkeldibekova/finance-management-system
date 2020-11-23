@@ -7,6 +7,8 @@ import com.example.fms.service.JournalService;
 import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +41,8 @@ public class JournalController {
     }
 
     @GetMapping("/get")
-    public List<Journal> getAllByParam(@RequestParam(required = false) String table,
+    public Page<Journal> getAllByParam(Pageable pageable,
+                                       @RequestParam(required = false) String table,
                                        @RequestParam(required = false) String action,
                                        @RequestParam(required = false) Long userId,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
@@ -62,7 +65,8 @@ public class JournalController {
         if (dateBefore != null)
             fooSet.retainAll(journalService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Journal> list = new ArrayList<>(fooSet);
+        return journalService.getByPage(list, pageable);
     }
 
 }

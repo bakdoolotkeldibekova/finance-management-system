@@ -2,10 +2,14 @@ package com.example.fms.service;
 
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.ResponseMessage;
+import com.example.fms.entity.Transaction;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,6 +44,14 @@ public class JournalServiceImpl implements JournalService {
     @Override
     public List<Journal> getAllForUser() {
         return journalRepository.findAllByDeleted(false);
+    }
+
+    @Override
+    public Page<Journal> getByPage(List<Journal> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<Journal>(list.subList(start, end), pageable, list.size());
+
     }
 
     @Override

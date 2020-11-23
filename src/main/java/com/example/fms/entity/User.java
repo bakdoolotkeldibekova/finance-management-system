@@ -57,4 +57,8 @@ public class User extends BaseEntity{
     @Column(name = "activation_code")
     private String activationCode;
 
+    @ManyToOne
+    @JoinColumn(name = "image_id")
+    private Image image;
+
 }

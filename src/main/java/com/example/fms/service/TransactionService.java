@@ -5,6 +5,8 @@ import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Transaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -15,6 +17,7 @@ public interface TransactionService {
 
     List<Transaction> getAllForAdmin();
     List<Transaction> getAllForUser();
+    Page<Transaction> getByPage(List<Transaction> list, Pageable pageable);
 
   //  ResponseEntity<Transaction> addTransaction(Object object, String userEmail);
 

@@ -5,6 +5,8 @@ import com.example.fms.entity.Department;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.service.DepartmentService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +25,8 @@ public class DepartmentController {
     }
 
     @GetMapping("/get")
-    public List<Department> getAllByParam(@RequestParam(required = false) String name,
+    public Page<Department> getAllByParam(Pageable pageable,
+                                          @RequestParam(required = false) String name,
                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
@@ -36,7 +39,8 @@ public class DepartmentController {
         if (dateBefore != null)
             fooSet.retainAll(departmentService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Department> list = new ArrayList<>(fooSet);
+        return departmentService.getByPage(list, pageable);
     }
 
     @PostMapping("/add")
@@ -54,7 +58,7 @@ public class DepartmentController {
        return departmentService.updateDepartmentById(departmentDTO, id, principal.getName());
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseMessage deleteDepartment(@PathVariable Long id, Principal principal) {
       return departmentService.deleteDepartmentById(id, principal.getName());
     }

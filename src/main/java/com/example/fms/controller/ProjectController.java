@@ -7,6 +7,8 @@ import com.example.fms.entity.User;
 import com.example.fms.service.ProjectService;
 import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +31,8 @@ public class ProjectController {
     }
 
     @GetMapping("/get")
-    public @ResponseBody List<Project> getAllByParam(@RequestParam(required = false) String name,
+    public @ResponseBody Page<Project> getAllByParam(Pageable pageable,
+                                                     @RequestParam(required = false) String name,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
@@ -42,7 +45,8 @@ public class ProjectController {
         if (dateBefore != null)
             fooSet.retainAll(projectService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Project> list = new ArrayList<>(fooSet);
+        return projectService.getByPage(list, pageable);
     }
 
     @PostMapping("/add")

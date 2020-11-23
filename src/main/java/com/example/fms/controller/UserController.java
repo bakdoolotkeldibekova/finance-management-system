@@ -5,9 +5,13 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
 
@@ -30,18 +34,40 @@ public class UserController {
         return userService.setPosition(position, principal.getName());
     }
 
+    @PutMapping("/image")
+    public ResponseEntity<User> setImage(@RequestParam(name = "file") MultipartFile multipartFile, //больше одного RequestParam нельзя, когда MultipartFile
+                                         Principal principal) throws IOException {
+        return userService.setImage(multipartFile, principal.getName());
+    }
+
+    @PostMapping("/destroyImage")
+    public ResponseMessage deleteByName(Principal principal){
+        return userService.deleteImage(principal.getName());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseMessage deleteByd(@PathVariable Long id){
         return userService.deleteUserById(id);
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<User> getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
+        return userService.getByEmail(email);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getById(@PathVariable Long id){
+        return userService.getById(id);
+    }
+
     @GetMapping("/get")
-    public List<User> getAllByParam(@RequestParam(required = false) String name,
-                             @RequestParam(required = false) Boolean isActive,
-                             @RequestParam(required = false) String surname,
+    public Page<User> getAllByParam(Pageable pageable,
+                                    @RequestParam(required = false) String name,
+                                    @RequestParam(required = false) Boolean isActive,
+                                    @RequestParam(required = false) String surname,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore,
-                             @RequestParam(required = false) String position){
+                                    @RequestParam(required = false) String position){
 
         Set<User> fooSet = new LinkedHashSet<>(userService.getAll());
 
@@ -58,17 +84,9 @@ public class UserController {
         if (position != null)
             fooSet.retainAll(userService.getAllByPosition(position));
 
-        return new ArrayList<>(fooSet);
+        List<User> userList = new ArrayList<>(fooSet);
+        return userService.getByPage(userList, pageable);
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<User> getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
-        return userService.getByEmail(email);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable Long id){
-        return userService.getById(id);
-    }
 
 }

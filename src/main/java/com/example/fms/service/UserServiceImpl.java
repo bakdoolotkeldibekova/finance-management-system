@@ -1,22 +1,29 @@
 package com.example.fms.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.fms.dto.UserAdminDTO;
 import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Role;
-import com.example.fms.entity.User;
+import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
+import com.example.fms.repository.ImageRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.RoleRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private JournalRepository journalRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private ImageRepository imageRepository;
 
     @Override
     public ResponseEntity<User> save(UserRegistrDTO userRegistrDTO) {
@@ -135,6 +144,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> getByPage(List<User> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<User>(list.subList(start, end), pageable, list.size());
+    }
+
+    @Override
     public List<User> getAllByPosition(String position) {
         return userRepository.findAllByPositionContainingIgnoringCase(position);
     }
@@ -211,17 +227,81 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<User> setPosition(String position, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null)
-            throw  new ResourceNotFoundException("User email " + userEmail + " not found!");
+            throw new ResourceNotFoundException("User email " + userEmail + " not found!");
         user.setPosition(position);
         userRepository.save(user);
 
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
         journal.setAction("changed position");
-        journal.setUser(null);
+        journal.setUser(user);
         journal.setDeleted(false);
         journalRepository.save(journal);
 
         return ResponseEntity.ok().body(user);
     }
+
+    @Override
+    public ResponseEntity<User> setImage(MultipartFile multipartFile, String userEmail) throws IOException {
+
+        final String urlKey = "cloudinary://119264965729773:1qhca12iztxCm0Df0nSBYtsIRF4@bagdash/"; //в конце добавляем '/'
+        Image image = new Image();
+        File file;
+        try{
+            file = Files.createTempFile(System.currentTimeMillis() + "",
+                    multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().length()-4)) // .jpg
+                    .toFile();
+            multipartFile.transferTo(file);
+
+            Cloudinary cloudinary = new Cloudinary(urlKey);
+            Map uploadResult = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
+            image.setName((String) uploadResult.get("public_id"));
+            image.setUrl((String) uploadResult.get("url"));
+            image.setFormat((String) uploadResult.get("format"));
+            imageRepository.save(image);
+
+            User user = userRepository.findByEmail(userEmail);
+            user.setImage(image);
+            userRepository.save(user);
+
+            Journal journal = new Journal();
+            journal.setTable("USER: " + user.getEmail());
+            journal.setAction("set image");
+            journal.setUser(user);
+            journal.setDeleted(false);
+            journalRepository.save(journal);
+
+            return ResponseEntity.ok().body(user);
+        }catch (IOException e){
+            throw new IOException("User was unable to set a image");
+        }
+    }
+
+    @Override
+    public ResponseMessage deleteImage(String email) {
+        User user = userRepository.findByEmail(email);
+        String name = user.getImage().getName();
+       final String urlKey = "cloudinary://119264965729773:1qhca12iztxCm0Df0nSBYtsIRF4@bagdash/";
+
+            try{
+                Cloudinary cloudinary = new Cloudinary(urlKey);
+                Map result = cloudinary.uploader().destroy(name, ObjectUtils.emptyMap());
+                user.setImage(null);
+                userRepository.save(user);
+
+                Journal journal = new Journal();
+                journal.setTable("USER: " + user.getEmail());
+                journal.setAction("delete the image");
+                journal.setUser(user);
+                journal.setDeleted(false);
+                journalRepository.save(journal);
+
+                if (result.toString().equals("{result=ok}"))
+                return new ResponseMessage(HttpStatus.OK.value(), "image successfully deleted");
+                return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "image has not deleted");
+            }catch (IOException e){
+                return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "image has not deleted");
+            }
+    }
+
 }

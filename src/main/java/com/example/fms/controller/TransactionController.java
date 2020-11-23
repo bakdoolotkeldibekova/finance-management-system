@@ -8,6 +8,8 @@ import com.example.fms.entity.Transaction;
 import com.example.fms.repository.UserRepository;
 import com.example.fms.service.TransactionService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +43,8 @@ public class TransactionController {
     }
 
     @GetMapping("/get")
-    public List<Transaction> getAllByParam(@RequestParam(required = false) String action,
+    public Page<Transaction> getAllByParam(Pageable pageable,
+                                           @RequestParam(required = false) String action,
                                            @RequestParam(required = false) Long fromAccountId,
                                            @RequestParam(required = false) Long categoryId,
                                            @RequestParam(required = false) Long toAccountId,
@@ -82,7 +85,8 @@ public class TransactionController {
         if (dateBefore != null)
             fooSet.retainAll(transactionService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Transaction> list = new ArrayList<>(fooSet);
+        return transactionService.getByPage(list, pageable);
     }
 
     @PostMapping("/addIncome")

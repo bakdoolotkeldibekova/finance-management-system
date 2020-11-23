@@ -3,16 +3,16 @@ package com.example.fms.service;
 import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.Account;
 import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.User;
-import javassist.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AccountService {
     List<Account> getAll();
+    Page<Account> getByPage(List<Account> list, Pageable pageable);
     List<Account> getAllByName(String name);
     List<Account> getAllByBalanceLessThan(BigDecimal balance);
     List<Account> getAllByBalanceGreaterThan(BigDecimal balance);

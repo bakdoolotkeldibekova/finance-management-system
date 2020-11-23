@@ -4,11 +4,15 @@ import com.example.fms.dto.DepartmentDTO;
 import com.example.fms.entity.Department;
 import com.example.fms.entity.Journal;
 import com.example.fms.entity.ResponseMessage;
+import com.example.fms.entity.Transaction;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,14 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Override
     public List<Department> getAll() {
         return departmentRepository.findAll();
+    }
+
+    @Override
+    public Page<Department> getByPage(List<Department> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+        return new PageImpl<Department>(list.subList(start, end), pageable, list.size());
+
     }
 
     @Override

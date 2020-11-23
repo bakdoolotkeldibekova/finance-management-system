@@ -3,8 +3,11 @@ package com.example.fms.controller;
 import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Staff;
+import com.example.fms.entity.Transaction;
 import com.example.fms.service.StaffService;
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +27,8 @@ public class StaffController {
     }
 
     @GetMapping("/get")
-    public List<Staff> getAllByParam(@RequestParam(required = false) String name,
+    public Page<Staff> getAllByParam(Pageable pageable,
+                                     @RequestParam(required = false) String name,
                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore){
 
@@ -37,7 +41,9 @@ public class StaffController {
         if (dateBefore != null)
             fooSet.retainAll(staffService.getAllByDateCreatedBefore(dateBefore));
 
-        return new ArrayList<>(fooSet);
+        List<Staff> list = new ArrayList<>(fooSet);
+        return staffService.getByPage(list, pageable);
+
     }
 
     @PostMapping("/add")
