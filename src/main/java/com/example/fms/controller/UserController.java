@@ -41,7 +41,7 @@ public class UserController {
     }
 
     @PostMapping("/destroyImage")
-    public ResponseMessage deleteByName(Principal principal){
+    public ResponseMessage deleteImage(Principal principal){
         return userService.deleteImage(principal.getName());
     }
 

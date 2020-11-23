@@ -280,28 +280,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseMessage deleteImage(String email) {
         User user = userRepository.findByEmail(email);
-        String name = user.getImage().getName();
-       final String urlKey = "cloudinary://119264965729773:1qhca12iztxCm0Df0nSBYtsIRF4@bagdash/";
+        user.setImage(null);
+        userRepository.save(user);
 
-            try{
-                Cloudinary cloudinary = new Cloudinary(urlKey);
-                Map result = cloudinary.uploader().destroy(name, ObjectUtils.emptyMap());
-                user.setImage(null);
-                userRepository.save(user);
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("delete the image");
+        journal.setUser(user);
+        journal.setDeleted(false);
+        journalRepository.save(journal);
 
-                Journal journal = new Journal();
-                journal.setTable("USER: " + user.getEmail());
-                journal.setAction("delete the image");
-                journal.setUser(user);
-                journal.setDeleted(false);
-                journalRepository.save(journal);
-
-                if (result.toString().equals("{result=ok}"))
-                return new ResponseMessage(HttpStatus.OK.value(), "image successfully deleted");
-                return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "image has not deleted");
-            }catch (IOException e){
-                return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "image has not deleted");
-            }
+        return new ResponseMessage(HttpStatus.OK.value(), "image successfully deleted");
     }
 
 }
