@@ -30,12 +30,13 @@ public class AccountController {
 
     @GetMapping("/get")
     public Page<Account> getAllByParam(Pageable pageable,
+                                       @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                        @RequestParam(required = false) String name,
                                        @RequestParam(required = false) BigDecimal balanceLessThan,
                                        @RequestParam(required = false) BigDecimal balanceGreaterThan,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore){
-       Set<Account> fooSet = new LinkedHashSet<>(accountService.getAll());
+       Set<Account> fooSet = new LinkedHashSet<>(accountService.getAll(isDeleted));
 
         if (name != null)
             fooSet.retainAll(accountService.getAllByName(name));

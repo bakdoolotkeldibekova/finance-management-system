@@ -32,11 +32,12 @@ public class ProjectController {
 
     @GetMapping("/get")
     public @ResponseBody Page<Project> getAllByParam(Pageable pageable,
+                                                     @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                                      @RequestParam(required = false) String name,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                                      @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
-        Set<Project> fooSet = new LinkedHashSet<>(projectService.getAll());
+        Set<Project> fooSet = new LinkedHashSet<>(projectService.getAll(isDeleted));
 
         if (name != null)
             fooSet.retainAll(projectService.getAllByNameContaining(name));

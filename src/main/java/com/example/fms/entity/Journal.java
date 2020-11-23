@@ -27,7 +27,7 @@ public class Journal extends BaseEntity{
 
     @Column(name = "action")
     private String action;
-
-    @Column(name = "is_deleted", precision = 0)
-    private boolean deleted;
+//
+//    @Column(name = "is_deleted", precision = 0)
+//    private boolean deleted;
 }

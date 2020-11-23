@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -18,6 +21,15 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @JsonInclude
+@SQLDelete(sql = "UPDATE users SET deleted=true WHERE id=?")
+@FilterDef(
+        name = "deletedUsersFilter",
+        parameters = @ParamDef(name = "isDeleted", type = "boolean")
+)
+@Filter(
+        name = "deletedUsersFilter",
+        condition = "deleted = :isDeleted"
+)
 public class User extends BaseEntity{
 
     @Column(name = "email", nullable = false, unique = true)

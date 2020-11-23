@@ -1,14 +1,13 @@
 package com.example.fms.service;
 
 import com.example.fms.dto.ProjectDTO;
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.Project;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Transaction;
+import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.ProjectRepository;
 import com.example.fms.repository.UserRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,10 +29,17 @@ public class ProjectServiceImpl implements ProjectService {
     private JournalRepository journalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
-    public List<Project> getAll() {
-        return projectRepository.findAll();
+    public List<Project> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedProjectFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Project> projects = projectRepository.findAll();
+        session.disableFilter("deletedProjectFilter");
+        return projects;
     }
 
     @Override
@@ -78,6 +85,8 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Project> getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project id " + id + " not found!"));
+        if (project.isDeleted())
+            throw new ResourceNotFoundException("Project id " + id + " was deleted!");
         return ResponseEntity.ok().body(project);
     }
 
@@ -85,6 +94,8 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Project> updateProjectById(ProjectDTO projectDTO, Long id, String userEmail){
         Project result = projectRepository.findById(id)
                 .map(newProject -> {
+                    if (newProject.isDeleted())
+                        throw new ResourceNotFoundException("Project id " + id + " was deleted!");
                     newProject.setName(projectDTO.getName());
                     return projectRepository.save(newProject);
                 })
@@ -104,8 +115,10 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseMessage deleteProjectById(Long id, String userEmail) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project id " + id + " not found!"));
-            projectRepository.deleteById(id);
+        if (project.isDeleted())
+            throw new ResourceNotFoundException("Project id " + id + " was deleted!");
 
+        projectRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("PROJECT: " + project.getName());
             journal.setAction("delete");

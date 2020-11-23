@@ -14,6 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import org.hibernate.Filter;
+import org.hibernate.Session;
+
+import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,10 +31,17 @@ public class AccountServiceImpl implements AccountService {
     private JournalRepository journalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
-    public List<Account> getAll() {
-        return accountRepository.findAll();
+    public List<Account> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedAccountFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Account> accounts = accountRepository.findAll();
+        session.disableFilter("deletedAccountFilter");
+        return accounts;
     }
 
     @Override
@@ -86,6 +97,8 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<Account> getAccountById(Long id) {
          Account account = accountRepository.findById(id)
                  .orElseThrow(()->new ResourceNotFoundException("Account id " + id + " not found!"));
+         if (account.isDeleted())
+             throw new ResourceNotFoundException("Account id " + id + " was deleted!");
          return ResponseEntity.ok().body(account);
     }
 
@@ -93,6 +106,8 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<Account> updateAccountById(AccountDTO accountDTO, Long id, String userEmail){
         Account result = accountRepository.findById(id)
                 .map(account -> {
+                    if (account.isDeleted())
+                        throw new ResourceNotFoundException("Account id " + id + " was deleted!");
                     account.setName(accountDTO.getName());
                     account.setBalance(accountDTO.getBalance());
                     return accountRepository.save(account);
@@ -115,13 +130,17 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Account id " + id + " not found!"));
 
-            accountRepository.deleteById(id);
-            Journal journal = new Journal();
-            journal.setTable("ACCOUNT: " + account.getName());
-            journal.setAction("delete");
-            journal.setUser(userRepository.findByEmail(userEmail));
-            journal.setDeleted(false);
-            journalRepository.save(journal);
+        if (account.isDeleted())
+            throw new ResourceNotFoundException("Account id " + id + " was deleted!");
+
+        accountRepository.deleteById(id);
+
+        Journal journal = new Journal();
+        journal.setTable("ACCOUNT: " + account.getName());
+        journal.setAction("delete");
+        journal.setUser(userRepository.findByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
 
         return new ResponseMessage(HttpStatus.OK.value(), "Account successfully deleted");
     }

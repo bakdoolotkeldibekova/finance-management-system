@@ -11,6 +11,8 @@ import com.example.fms.repository.ImageRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.RoleRepository;
 import com.example.fms.repository.UserRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +45,8 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
     @Autowired
     private ImageRepository imageRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     public ResponseEntity<User> save(UserRegistrDTO userRegistrDTO) {
@@ -139,8 +144,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAll() {
-        return userRepository.findAll();
+    public List<User> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedUsersFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<User> users = userRepository.findAll();
+        session.disableFilter("deletedUsersFilter");
+        return users;
     }
 
     @Override
@@ -202,19 +212,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseMessage deleteUserById(Long id) {
+    public ResponseMessage blockUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found!"));
-        userRepository.deleteById(id);
+        user.setActive(false);
+        userRepository.save(user);
 
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
-        journal.setAction("delete");
+        journal.setAction("block");
         journal.setUser(null);
         journal.setDeleted(false);
         journalRepository.save(journal);
 
-        return new ResponseMessage(HttpStatus.OK.value(), "User successfully deleted");
+        return new ResponseMessage(HttpStatus.OK.value(), "User successfully blocked");
     }
 
     @Override //for Init class

@@ -29,7 +29,7 @@ public class HelloController {
 
     @PostMapping("/get")
     public List<Project> getProjects(Principal principal) {
-        List<Project> projects = service.getAll();
+        List<Project> projects = service.getAll(false);
         return projects;
     }
 }

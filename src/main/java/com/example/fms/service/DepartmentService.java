@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface DepartmentService {
 
-    List<Department> getAll();
+    List<Department> getAll(boolean isDeleted);
     Page<Department> getByPage(List<Department> list, Pageable pageable);
     List<Department> getAllByNameContaining(String name);
     List<Department> getAllByDateCreatedBefore(String before);

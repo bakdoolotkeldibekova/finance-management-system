@@ -12,5 +12,5 @@ import java.math.BigDecimal;
 
 public class AccountDTO {
     private String name;
-    private BigDecimal balance;
+    private BigDecimal balance = new BigDecimal(0);
 }

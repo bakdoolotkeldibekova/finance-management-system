@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 
 @EqualsAndHashCode(callSuper = true)
@@ -17,6 +20,15 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "account")
 @JsonInclude
+@SQLDelete(sql = "UPDATE account SET deleted=true WHERE id=?")
+@FilterDef(
+        name = "deletedAccountFilter",
+        parameters = @ParamDef(name = "isDeleted", type = "boolean")
+)
+@Filter(
+        name = "deletedAccountFilter",
+        condition = "deleted = :isDeleted"
+)
 public class Account extends BaseEntity{
 
     @Column(name = "name", nullable = false)

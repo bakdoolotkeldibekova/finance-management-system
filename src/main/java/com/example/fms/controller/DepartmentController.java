@@ -26,11 +26,12 @@ public class DepartmentController {
 
     @GetMapping("/get")
     public Page<Department> getAllByParam(Pageable pageable,
+                                          @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                           @RequestParam(required = false) String name,
                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
-        Set<Department> fooSet = new LinkedHashSet<>(departmentService.getAll());
+        Set<Department> fooSet = new LinkedHashSet<>(departmentService.getAll(isDeleted));
 
         if (name != null)
             fooSet.retainAll(departmentService.getAllByNameContaining(name));

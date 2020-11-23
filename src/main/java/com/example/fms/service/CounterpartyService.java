@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CounterpartyService {
-    List<Counterparty> getAll();
+    List<Counterparty> getAll(boolean isDeleted);
     Page<Counterparty> getByPage(List<Counterparty> list, Pageable pageable);
     List<Counterparty> getAllByNameContaining(String name);
     List<Counterparty> getAllByDateCreatedBefore(String before);

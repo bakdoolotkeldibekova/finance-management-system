@@ -7,6 +7,8 @@ import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.StaffRepository;
 import com.example.fms.repository.UserRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,10 +33,17 @@ public class StaffServiceImpl implements StaffService{
     private UserRepository userRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
-    public List<Staff> getAll() {
-        return staffRepository.findAll();
+    public List<Staff> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedStaffFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Staff> staffList = staffRepository.findAll();
+        session.disableFilter("deletedStaffFilter");
+        return staffList;
     }
 
     @Override
@@ -73,6 +83,8 @@ public class StaffServiceImpl implements StaffService{
     public ResponseEntity<Staff> getStaffById(Long id) {
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff id " + id + " not found!"));
+        if (staff.isDeleted())
+            throw new ResourceNotFoundException("Staff id " + id + " was deleted!");
         return ResponseEntity.ok().body(staff);
     }
 
@@ -87,11 +99,16 @@ public class StaffServiceImpl implements StaffService{
         for (Long depId : newStaff.getDepartments()) {
             Department department = departmentRepository.findById(depId)
                     .orElseThrow(()-> new ResourceNotFoundException("Department id " + id + " not found!"));
+            if (department.isDeleted())
+                throw new ResourceNotFoundException("Department id " + id + " was deleted!");
+
             departmentList.add(department);
         }
 
         Staff result = staffRepository.findById(id)
                 .map(staff -> {
+                    if (staff.isDeleted())
+                        throw new ResourceNotFoundException("Staff id " + id + " was deleted!");
                     staff.setName(newStaff.getName());
                     staff.setDepartments(departmentList);
                     staff.setPosition(newStaff.getPosition());
@@ -115,8 +132,10 @@ public class StaffServiceImpl implements StaffService{
     public ResponseMessage deleteStaffById(Long id, String userEmail) {
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff id " + id + " not found!"));
-        staffRepository.deleteById(id);
+        if (staff.isDeleted())
+            throw new ResourceNotFoundException("Staff id " + id + " was deleted!");
 
+        staffRepository.deleteById(id);
         Journal journal = new Journal();
         journal.setTable("STAFF: " + staff.getName());
         journal.setAction("delete");

@@ -26,11 +26,12 @@ public class CategoryController {
 
     @GetMapping("/get")
     public Page<Category> getAllByParam(Pageable pageable,
+                                        @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                         @RequestParam(required = false) String name,
                                         @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                         @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
-        Set<Category> fooSet = new LinkedHashSet<>(categoryService.getAll());
+        Set<Category> fooSet = new LinkedHashSet<>(categoryService.getAll(isDeleted));
 
         if (name != null)
             fooSet.retainAll(categoryService.getAllByNameContaining(name));

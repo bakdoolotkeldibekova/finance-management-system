@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface AccountService {
-    List<Account> getAll();
+    List<Account> getAll(boolean isDeleted);
     Page<Account> getByPage(List<Account> list, Pageable pageable);
     List<Account> getAllByName(String name);
     List<Account> getAllByBalanceLessThan(BigDecimal balance);

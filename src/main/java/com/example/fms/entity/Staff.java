@@ -5,8 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +23,15 @@ import java.util.Locale;
 @Entity
 @Table(name = "staff")
 @JsonInclude
+@SQLDelete(sql = "UPDATE staff SET deleted=true WHERE id=?")
+@FilterDef(
+		name = "deletedStaffFilter",
+		parameters = @ParamDef(name = "isDeleted", type = "boolean")
+)
+@Filter(
+		name = "deletedStaffFilter",
+		condition = "deleted = :isDeleted"
+)
 public class Staff extends BaseEntity {
 
 	@Column(name = "name", nullable = false)

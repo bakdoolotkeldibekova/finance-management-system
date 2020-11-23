@@ -1,14 +1,13 @@
 package com.example.fms.service;
 
 import com.example.fms.dto.DepartmentDTO;
-import com.example.fms.entity.Department;
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Transaction;
+import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.DepartmentRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,11 +29,18 @@ public class DepartmentServiceImpl implements DepartmentService{
     private JournalRepository journalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
-    public List<Department> getAll() {
-        return departmentRepository.findAll();
-    }
+    public List<Department> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedDepartmentFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Department> departments = departmentRepository.findAll();
+        session.disableFilter("deletedDepartmentFilter");
+        return departments;
+   }
 
     @Override
     public Page<Department> getByPage(List<Department> list, Pageable pageable) {
@@ -78,6 +85,8 @@ public class DepartmentServiceImpl implements DepartmentService{
     public ResponseEntity<Department> getDepartmentById(Long id) {
         Department department = departmentRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Department id " + id + " not found!"));
+        if (department.isDeleted())
+            throw new ResourceNotFoundException("Department id " + id + " was deleted!");
         return ResponseEntity.ok().body(department);
     }
 
@@ -85,6 +94,8 @@ public class DepartmentServiceImpl implements DepartmentService{
     public ResponseEntity<Department> updateDepartmentById(DepartmentDTO departmentDTO, Long id, String userEmail) {
         Department result = departmentRepository.findById(id)
                 .map(department -> {
+                    if (department.isDeleted())
+                        throw new ResourceNotFoundException("Department id " + id + " was deleted!");
                     department.setName(departmentDTO.getName());
                     return departmentRepository.save(department);
                 })
@@ -104,8 +115,10 @@ public class DepartmentServiceImpl implements DepartmentService{
     public ResponseMessage deleteDepartmentById(Long id, String userEmail) {
         Department department = departmentRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Department id " + id + " not found!"));
-            departmentRepository.deleteById(id);
+        if (department.isDeleted())
+            throw new ResourceNotFoundException("Department id " + id + " was deleted!");
 
+        departmentRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("DEPARTMENT: " + department.getName());
             journal.setAction("delete");

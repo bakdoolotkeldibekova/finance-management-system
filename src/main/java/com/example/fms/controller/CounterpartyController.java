@@ -27,11 +27,12 @@ public class CounterpartyController {
 
     @GetMapping("/get")
     public Page<Counterparty> getAllByParam(Pageable pageable,
+                                            @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                             @RequestParam(required = false) String name,
                                             @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                             @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore) {
 
-        Set<Counterparty> fooSet = new LinkedHashSet<>(counterpartyService.getAll());
+        Set<Counterparty> fooSet = new LinkedHashSet<>(counterpartyService.getAll(isDeleted));
 
         if (name != null)
             fooSet.retainAll(counterpartyService.getAllByNameContaining(name));

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,6 +20,15 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "counterparty")
 @JsonInclude
+@SQLDelete(sql = "UPDATE counterparty SET deleted=true WHERE id=?")
+@FilterDef(
+        name = "deletedCounterpartyFilter",
+        parameters = @ParamDef(name = "isDeleted", type = "boolean")
+)
+@Filter(
+        name = "deletedCounterpartyFilter",
+        condition = "deleted = :isDeleted"
+)
 public class Counterparty extends BaseEntity {
 
     @Column(name = "name", length = 25, nullable = false, unique = true)

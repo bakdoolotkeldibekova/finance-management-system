@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface StaffService {
-    List<Staff> getAll();
+    List<Staff> getAll(boolean isDeleted);
     Page<Staff> getByPage(List<Staff> list, Pageable pageable);
 
     ResponseEntity<Staff> addStaff(StaffDTO newStaff, String userEmail);

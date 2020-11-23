@@ -26,7 +26,7 @@
         ResponseEntity<User> setImage(MultipartFile multipartFile, String userEmail) throws IOException;
         ResponseMessage deleteImage(String email);
 
-        List<User> getAll();
+        List<User> getAll(boolean isDeleted);
         Page<User> getByPage(List<User> list, Pageable pageable);
         List<User> getAllByPosition(String position);
         List<User> getAllByActive(boolean isActive);
@@ -38,5 +38,5 @@
 
         ResponseEntity<User> getByEmail(String email);
         ResponseEntity<User> getById(Long id);
-        ResponseMessage deleteUserById(Long id);
+        ResponseMessage blockUserById(Long id);
     }

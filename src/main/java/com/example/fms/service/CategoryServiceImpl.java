@@ -1,14 +1,13 @@
 package com.example.fms.service;
 
 import com.example.fms.dto.CategoryDTO;
-import com.example.fms.entity.Category;
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Transaction;
+import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.CategoryRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,10 +29,17 @@ public class CategoryServiceImpl implements CategoryService{
     private JournalRepository journalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
-    public List<Category> getAll() {
-        return categoryRepository.findAll();
+    public List<Category> getAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedCategoryFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        List<Category> categories = categoryRepository.findAll();
+        session.disableFilter("deletedCategoryFilter");
+        return categories;
     }
 
     @Override
@@ -77,6 +84,8 @@ public class CategoryServiceImpl implements CategoryService{
     public ResponseEntity<Category> getCategoryById(Long id){
         Category category = categoryRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Category id " + id + " not found!"));
+        if (category.isDeleted())
+            throw new ResourceNotFoundException("Category id " + id + " was deleted!");
         return ResponseEntity.ok().body(category);
     }
 
@@ -84,6 +93,8 @@ public class CategoryServiceImpl implements CategoryService{
     public ResponseEntity<Category> updateCategoryById(CategoryDTO categoryDTO, Long id, String userEmail){
         Category result = categoryRepository.findById(id)
                 .map(category -> {
+                    if (category.isDeleted())
+                        throw new ResourceNotFoundException("Category id " + id + " was deleted!");
                     category.setName(categoryDTO.getName());
                     return categoryRepository.save(category);
                 })
@@ -104,7 +115,10 @@ public class CategoryServiceImpl implements CategoryService{
         Category category = categoryRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Category id " + id + " not found!"));
 
-            categoryRepository.deleteById(id);
+        if (category.isDeleted())
+            throw new ResourceNotFoundException("Category id " + id + " was deleted!");
+
+        categoryRepository.deleteById(id);
             Journal journal = new Journal();
             journal.setTable("CATEGORY: " + category.getName());
             journal.setAction("delete");
