@@ -22,6 +22,8 @@ import java.util.List;
 public class JournalServiceImpl implements JournalService {
     @Autowired
     private JournalRepository journalRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public ResponseEntity<Journal> getByIdForAdmin(Long id){
@@ -96,12 +98,12 @@ public class JournalServiceImpl implements JournalService {
         journal1.setDeleted(true);
         journalRepository.save(journal1);
 
-//            Journal journal = new Journal();
-//            journal.setTable("JOURNAL");
-//            journal.setAction("delete");
-//            journal.setUser(userRepository.findByEmail(userEmail));
-//            journal.setDeleted(false);
-//            journalRepository.save(journal);
+            Journal journal = new Journal();
+            journal.setTable("JOURNAL");
+            journal.setAction("delete");
+            journal.setUser(userRepository.findByEmail(userEmail));
+            journal.setDeleted(false);
+            journalRepository.save(journal);
        return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
     }
 }
