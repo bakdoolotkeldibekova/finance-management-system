@@ -1,5 +1,6 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,8 +22,16 @@ import java.util.List;
 @Table(name = "roles")
 public class Role extends BaseEntity implements GrantedAuthority {
 
+    @JsonIgnore
+    @Column(name = "is_deleted", precision = 0)
+    private boolean deleted;
+
     @Column(name = "name", length = 50)
     private String name;
+
+    public Role(String name){
+        this.name = name;
+    }
 
     @Override//for jwt
     public String getAuthority() {

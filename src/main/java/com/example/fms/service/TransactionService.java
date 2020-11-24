@@ -19,7 +19,7 @@ public interface TransactionService {
     List<Transaction> getAllForUser();
     Page<Transaction> getByPage(List<Transaction> list, Pageable pageable);
 
-  //  ResponseEntity<Transaction> addTransaction(Object object, String userEmail);
+ //   ResponseEntity<Transaction> addTransaction(Object object, String userEmail);
 
     ResponseEntity<Transaction> addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
 

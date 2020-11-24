@@ -27,8 +27,8 @@ public class Init implements CommandLineRunner {
 //        roleRepository.save(role);
 //        Role role1 = new Role("ROLE_USER");
 //        roleRepository.save(role1);
-////
-//   //     userService.createUser(new User("1804.01026@manas.edu.kg", "12345678", "Bulut", "Alimov", role1, "student", true, null));
+//
+//     //   userService.createUser(new User("1804.01026@manas.edu.kg", "12345678", "Bulut", "Alimov", role1, "student", true, null));
 //        userService.createAdmin(new UserAdminDTO("sanira@gmail.com", "Sanira", "Madzhikova", "S12345678", "head of neobis"));
     }
 }

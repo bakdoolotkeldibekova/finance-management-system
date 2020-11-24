@@ -32,7 +32,7 @@ public class StaffServiceImpl implements StaffService{
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private DepartmentRepository departmentRepository;
+    private DepartmentService departmentService;
     @Autowired
     private EntityManager entityManager;
 
@@ -57,8 +57,7 @@ public class StaffServiceImpl implements StaffService{
     public ResponseEntity<Staff> addStaff(StaffDTO newStaff, String userEmail) {
         List<Department> departmentList = new ArrayList<>();
         for (Long id : newStaff.getDepartments()) {
-            Department department = departmentRepository.findById(id)
-                    .orElseThrow(()-> new ResourceNotFoundException("Department id " + id + " not found!"));
+            Department department = departmentService.getDepartmentById(id).getBody();
             departmentList.add(department);
         }
         Staff staff = new Staff(newStaff.getName(),
@@ -97,11 +96,7 @@ public class StaffServiceImpl implements StaffService{
     public ResponseEntity<Staff> updateStaffById(StaffDTO newStaff, Long id, String userEmail) {
         List<Department> departmentList = new ArrayList<>();
         for (Long depId : newStaff.getDepartments()) {
-            Department department = departmentRepository.findById(depId)
-                    .orElseThrow(()-> new ResourceNotFoundException("Department id " + id + " not found!"));
-            if (department.isDeleted())
-                throw new ResourceNotFoundException("Department id " + id + " was deleted!");
-
+            Department department = departmentService.getDepartmentById(depId).getBody();
             departmentList.add(department);
         }
 

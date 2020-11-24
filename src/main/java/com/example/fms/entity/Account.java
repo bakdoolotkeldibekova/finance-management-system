@@ -20,14 +20,14 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "account")
 @JsonInclude
-@SQLDelete(sql = "UPDATE account SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE account SET is_deleted=true WHERE id=?")
 @FilterDef(
         name = "deletedAccountFilter",
         parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
         name = "deletedAccountFilter",
-        condition = "deleted = :isDeleted"
+        condition = "is_deleted = :isDeleted"
 )
 public class Account extends BaseEntity{
 

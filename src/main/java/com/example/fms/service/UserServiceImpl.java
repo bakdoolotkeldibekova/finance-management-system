@@ -76,6 +76,7 @@ public class UserServiceImpl implements UserService {
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
         user.setRole(roleRepository.findById(2L).orElse(roleRepository.save(new Role("ROLE_USER"))));
+        user.setDeleted(false);
 
         String message = "Hello, ! \n" +
                 " Please, visit next link to activate your account: http:localhost:8080/registr/activate/" +
@@ -97,6 +98,7 @@ public class UserServiceImpl implements UserService {
         user.setPosition(userAdminDTO.getPosition());
         user.setActive(true);
         user.setRole(roleRepository.findById(1L).orElse(roleRepository.save(new Role("ROLE_ADMIN"))));
+        user.setDeleted(false);
 
         userRepository.save(user);
     }
@@ -137,20 +139,15 @@ public class UserServiceImpl implements UserService {
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
         journal.setAction("changed password");
-        journal.setUser(null);
+        journal.setUser(user);
         journal.setDeleted(false);
         journalRepository.save(journal);
         return ResponseEntity.ok().body(user);
     }
 
     @Override
-    public List<User> getAll(boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter("deletedUsersFilter");
-        filter.setParameter("isDeleted", isDeleted);
-        List<User> users = userRepository.findAll();
-        session.disableFilter("deletedUsersFilter");
-        return users;
+    public List<User> getAll() {
+       return userRepository.findAll();
     }
 
     @Override
@@ -212,7 +209,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseMessage blockUserById(Long id) {
+    public ResponseMessage blockUserById(Long id, String userEmail) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found!"));
         user.setActive(false);
@@ -221,7 +218,7 @@ public class UserServiceImpl implements UserService {
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
         journal.setAction("block");
-        journal.setUser(null);
+        journal.setUser(userRepository.findByEmail(userEmail));
         journal.setDeleted(false);
         journalRepository.save(journal);
 
@@ -304,4 +301,20 @@ public class UserServiceImpl implements UserService {
         return new ResponseMessage(HttpStatus.OK.value(), "image successfully deleted");
     }
 
+    @Override
+    public ResponseEntity<User> unBlockUserById(Long id, String userEmail) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found!"));
+        user.setActive(true);
+        userRepository.save(user);
+
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("unBlock");
+        journal.setUser(userRepository.findByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return ResponseEntity.ok().body(user);
+    }
 }

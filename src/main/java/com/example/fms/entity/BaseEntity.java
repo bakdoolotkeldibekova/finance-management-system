@@ -16,6 +16,7 @@ public class BaseEntity {
     private Long id;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdated;
+    @Column(name = "is_deleted", precision = 0)
     private boolean deleted;
 
     @PrePersist

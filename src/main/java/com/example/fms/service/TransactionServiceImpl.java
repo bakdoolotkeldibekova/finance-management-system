@@ -26,15 +26,17 @@ public class TransactionServiceImpl implements TransactionService{
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
+    private AccountService accountService;
+    @Autowired
     private AccountRepository accountRepository;
     @Autowired
-    private CategoryRepository categoryRepository;
+    private CategoryService categoryService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private CounterpartyRepository counterpartyRepository;
+    private CounterpartyService counterpartyService;
     @Autowired
-    private ProjectRepository projectRepository;
+    private ProjectService projectService;
     @Autowired
     private JournalRepository journalRepository;
 
@@ -42,93 +44,6 @@ public class TransactionServiceImpl implements TransactionService{
     public List<Transaction> getAllForUser() {
         return transactionRepository.findAllByDeleted(false);
     }
-//
-//    @Override
-//    public ResponseEntity<Transaction> addTransaction(Object object, String userEmail) {
-//        Transaction transaction = new Transaction();
-//        Long categoryId = null;
-//        Long counterpartyId = null;
-//        Long projectId = null;
-//        BigDecimal balance = null;
-//        Long toAccountId = null;
-//        Long fromAccountId = null;
-//        String description = null;
-//
-//        switch (object.getClass().getSimpleName()) {
-//            case "TransactionIncomeDTO":
-//                transaction.setAction("INCOME");
-//
-//                TransactionIncomeDTO transactionIncomeDTO = (TransactionIncomeDTO) object;
-//                categoryId = transactionIncomeDTO.getCategory();
-//                counterpartyId = transactionIncomeDTO.getCounterparty();
-//                projectId = transactionIncomeDTO.getProject();
-//                balance = transactionIncomeDTO.getBalance();
-//                toAccountId = transactionIncomeDTO.getToAccount();
-//                description = transactionIncomeDTO.getDescription();
-//                break;
-//            case "TransactionExpenseDTO":
-//                transaction.setAction("EXPENSE");
-//
-//                TransactionExpenseDTO transactionExpenseDTO = (TransactionExpenseDTO) object;
-//                categoryId = transactionExpenseDTO.getCategory();
-//                counterpartyId = transactionExpenseDTO.getCounterparty();
-//                projectId = transactionExpenseDTO.getProject();
-//                balance = transactionExpenseDTO.getBalance();
-//                fromAccountId = transactionExpenseDTO.getFromAccount();
-//                description = transactionExpenseDTO.getDescription();
-//                break;
-//            case "TransactionRemittanceDTO":
-//                transaction.setAction("REMITTANCE");
-//
-//                TransactionRemittanceDTO transactionRemittanceDTO = (TransactionRemittanceDTO) object;
-//                fromAccountId = transactionRemittanceDTO.getFromAccount();
-//                toAccountId = transactionRemittanceDTO.getToAccount();
-//                balance = transactionRemittanceDTO.getBalance();
-//                description = transactionRemittanceDTO.getDescription();
-//                break;
-//        }
-//
-//        if (transaction.getAction().equals("INCOME") || transaction.getAction().equals("EXPENSE")) {
-//            Long finalCategoryId = categoryId;
-//            Category category = categoryRepository.findById(categoryId)
-//                    .orElseThrow(() -> new ResourceNotFoundException("Category id " + finalCategoryId + " not found!"));
-//            transaction.setCategory(category);
-//
-//            Long finalCounterpartyId = counterpartyId;
-//            Counterparty counterparty = counterpartyRepository.findById(counterpartyId)
-//                    .orElseThrow(() -> new ResourceNotFoundException("Counterparty id " + finalCounterpartyId + " not found!"));
-//            transaction.setCounterparty(counterparty);
-//
-//            Long finalProjectId = projectId;
-//            Project project = projectRepository.findById(projectId)
-//                    .orElseThrow(() -> new ResourceNotFoundException("Project id " + finalProjectId + " not found!"));
-//            transaction.setProject(project);
-//        } if (transaction.getAction().equals("INCOME") || transaction.getAction().equals("REMITTANCE")){
-//            Long finalToAccountId = toAccountId;
-//            Account account = accountRepository.findById(toAccountId)
-//                    .orElseThrow(() -> new ResourceNotFoundException("Account id " + finalToAccountId + " not found!"));
-//            transaction.setToAccount(account);
-//            account.setBalance(account.getBalance().add(transaction.getBalance()));
-//            accountRepository.save(account);
-//        } if (transaction.getAction().equals("EXPENSE") || transaction.getAction().equals("REMITTANCE")){
-//            Long finalFromAccountId = fromAccountId;
-//            Account account = accountRepository.findById(fromAccountId)
-//                    .orElseThrow(() -> new ResourceNotFoundException("Account id " + finalFromAccountId + " not found!"));
-//            transaction.setFromAccount(account);
-//            BigDecimal a = account.getBalance().subtract(transaction.getBalance());
-//            if (BigDecimal.ZERO.compareTo(a) == 1)
-//                throw new NotEnoughBalanceException("Not enough balance in account id " + fromAccountId + "!");
-//            account.setBalance(a);
-//            accountRepository.save(account);
-//        }
-//
-//        transaction.setBalance(balance);
-//        transaction.setDescription(description);
-//        transaction.setUser(userRepository.findByEmail(userEmail));
-//        transaction.setDeleted(false);
-//
-//        return ResponseEntity.ok().body(transaction);
-//    }
 
     @Override
     public List<Transaction> getAllForAdmin() {
@@ -140,24 +55,19 @@ public class TransactionServiceImpl implements TransactionService{
         Transaction transaction = new Transaction();
         transaction.setAction("INCOME");
 
-        Category category = categoryRepository.findById(transactionIncomeDTO.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Category id " + transactionIncomeDTO.getCategory() + " not found!"));
+        Category category = categoryService.getCategoryById(transactionIncomeDTO.getCategory()).getBody();
         transaction.setCategory(category);
 
-        Counterparty counterparty = counterpartyRepository.findById(transactionIncomeDTO.getCounterparty())
-                .orElseThrow(() -> new ResourceNotFoundException("Counterparty id " + transactionIncomeDTO.getCounterparty() + " not found!"));
+        Counterparty counterparty = counterpartyService.getCounterpartyById(transactionIncomeDTO.getCounterparty()).getBody();
         transaction.setCounterparty(counterparty);
 
-        transaction.setBalance(transactionIncomeDTO.getBalance());
-
-        Project project = projectRepository.findById(transactionIncomeDTO.getProject())
-                .orElseThrow(() -> new ResourceNotFoundException("Project id " + transactionIncomeDTO.getProject() + " not found!"));
+        Project project = projectService.getProjectById(transactionIncomeDTO.getProject()).getBody();
         transaction.setProject(project);
 
-        Account account = accountRepository.findById(transactionIncomeDTO.getToAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + transactionIncomeDTO.getToAccount() + " not found!"));
+        Account account = accountService.getAccountById(transactionIncomeDTO.getToAccount()).getBody();
         transaction.setToAccount(account);
 
+        transaction.setBalance(transactionIncomeDTO.getBalance());
         transaction.setDescription(transactionIncomeDTO.getDescription());
         transaction.setUser(userRepository.findByEmail(userEmail));
         transaction.setDeleted(false);
@@ -174,24 +84,19 @@ public class TransactionServiceImpl implements TransactionService{
         Transaction transaction = new Transaction();
         transaction.setAction("EXPENSE");
 
-        Category category = categoryRepository.findById(transactionExpenseDTO.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Category id " + transactionExpenseDTO.getCategory() + " not found!"));
+        Category category = categoryService.getCategoryById(transactionExpenseDTO.getCategory()).getBody();
         transaction.setCategory(category);
 
-        Counterparty counterparty = counterpartyRepository.findById(transactionExpenseDTO.getCounterparty())
-                .orElseThrow(() -> new ResourceNotFoundException("Counterparty id " + transactionExpenseDTO.getCounterparty() + " not found!"));
+        Counterparty counterparty = counterpartyService.getCounterpartyById(transactionExpenseDTO.getCounterparty()).getBody();
         transaction.setCounterparty(counterparty);
 
-        transaction.setBalance(transactionExpenseDTO.getBalance());
-
-        Project project = projectRepository.findById(transactionExpenseDTO.getProject())
-                .orElseThrow(() -> new ResourceNotFoundException("Project id " + transactionExpenseDTO.getProject() + " not found!"));
+        Project project =projectService.getProjectById(transactionExpenseDTO.getProject()).getBody();
         transaction.setProject(project);
 
-        Account account = accountRepository.findById(transactionExpenseDTO.getFromAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + transactionExpenseDTO.getFromAccount() + " not found!"));
+        Account account = accountService.getAccountById(transactionExpenseDTO.getFromAccount()).getBody();
         transaction.setFromAccount(account);
 
+        transaction.setBalance(transactionExpenseDTO.getBalance());
         transaction.setDescription(transactionExpenseDTO.getDescription());
         transaction.setUser(userRepository.findByEmail(userEmail));
         transaction.setDeleted(false);
@@ -212,28 +117,24 @@ public class TransactionServiceImpl implements TransactionService{
     public ResponseEntity<Transaction> addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail)  {
         Transaction transaction = new Transaction();
         transaction.setAction("REMITTANCE");
-        Account fromAccount = accountRepository.findById(transactionRemittanceDTO.getFromAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + transactionRemittanceDTO.getFromAccount() + " not found!"));
+        Account fromAccount = accountService.getAccountById(transactionRemittanceDTO.getFromAccount()).getBody();
         transaction.setFromAccount(fromAccount);
 
-        Account toAccount = accountRepository.findById(transactionRemittanceDTO.getToAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + transactionRemittanceDTO.getToAccount() + " not found!"));
+        Account toAccount = accountService.getAccountById(transactionRemittanceDTO.getToAccount()).getBody();
         transaction.setToAccount(toAccount);
 
-        BigDecimal a = fromAccount.getBalance().subtract(transaction.getBalance());
+        BigDecimal a = fromAccount.getBalance().subtract(transactionRemittanceDTO.getBalance());
         if (BigDecimal.ZERO.compareTo(a) == 1) {
             throw new NotEnoughBalanceException("Not enough balance in account id " + transactionRemittanceDTO.getFromAccount() + "!");
         } else {
             fromAccount.setBalance(a);
+            accountRepository.save(fromAccount);
         }
 
         transaction.setBalance(transactionRemittanceDTO.getBalance());
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userRepository.findByEmail(userEmail));
         transaction.setDeleted(false);
-
-        //fromAccount.setBalance(fromAccount.getBalance().subtract(transaction.getBalance()));
-        accountRepository.save(fromAccount);
 
         toAccount.setBalance(toAccount.getBalance().add(transaction.getBalance()));
         accountRepository.save(toAccount);
@@ -322,11 +223,8 @@ public class TransactionServiceImpl implements TransactionService{
         if (oldTransaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
 
-        Account oldAccount = accountRepository.findById(oldTransaction.getToAccount().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + oldTransaction.getToAccount() + " not found!"));
-
-        Account newAccount = accountRepository.findById(newTransaction.getToAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + newTransaction.getToAccount() + " not found!"));
+        Account oldAccount = accountService.getAccountById(oldTransaction.getToAccount().getId()).getBody();
+        Account newAccount = accountService.getAccountById(newTransaction.getToAccount()).getBody();
 
         BigDecimal balance;
         if (oldAccount == newAccount) {
@@ -338,25 +236,13 @@ public class TransactionServiceImpl implements TransactionService{
             if (BigDecimal.ZERO.compareTo(balance) == 1)
                 throw new NotEnoughBalanceException("Not enough balance in account id " + oldAccount.getId() + "!");
             oldAccount.setBalance(balance);
-
             balance = newAccount.getBalance().add(newTransaction.getBalance());
         }
         newAccount.setBalance(balance);
 
-        //oldTransaction.setToAccount(newAccount);
-        Category category = categoryRepository.findById(newTransaction.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Category id " + newTransaction.getCategory() + " not found!"));
-        //oldTransaction.setCategory(category);
-
-        Project project = projectRepository.findById(newTransaction.getProject())
-                .orElseThrow(() -> new ResourceNotFoundException("Project id " + newTransaction.getProject() + " not found!"));
-        //oldTransaction.setProject(project);
-
-        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty())
-                .orElseThrow(() -> new ResourceNotFoundException("Counterparty id " + newTransaction.getCounterparty() + " not found!"));
-        //oldTransaction.setCounterparty(counterparty);
-        //oldTransaction.setDescription(newTransaction.getDescription());
-
+        Category category = categoryService.getCategoryById(newTransaction.getCategory()).getBody();
+        Project project = projectService.getProjectById(newTransaction.getProject()).getBody();
+        Counterparty counterparty = counterpartyService.getCounterpartyById(newTransaction.getCounterparty()).getBody();
 
         Transaction result = transactionRepository.findById(id)
                 .map(transaction -> {
@@ -375,17 +261,14 @@ public class TransactionServiceImpl implements TransactionService{
 
     @Override
     public ResponseEntity<Transaction> updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail) {
-        Transaction oldTransaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
+        Transaction oldTransaction = transactionRepository
+                .findById(id).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
 
         if (oldTransaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
 
-        Account oldAccount = accountRepository.findById(oldTransaction.getFromAccount().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + oldTransaction.getFromAccount() + " not found!"));
-
-        Account newAccount = accountRepository.findById(newTransaction.getFromAccount())
-                .orElseThrow(() -> new ResourceNotFoundException("Account id " + newTransaction.getFromAccount() + " not found!"));
+        Account oldAccount = accountService.getAccountById(oldTransaction.getFromAccount().getId()).getBody();
+        Account newAccount = accountService.getAccountById(newTransaction.getFromAccount()).getBody();
 
         BigDecimal balance;
         if (oldAccount == newAccount) {
@@ -401,14 +284,9 @@ public class TransactionServiceImpl implements TransactionService{
         }
         newAccount.setBalance(balance);
 
-        Category category = categoryRepository.findById(newTransaction.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Category id " + newTransaction.getCategory() + " not found!"));
-
-        Project project = projectRepository.findById(newTransaction.getProject())
-                .orElseThrow(() -> new ResourceNotFoundException("Project id " + newTransaction.getProject() + " not found!"));
-
-        Counterparty counterparty = counterpartyRepository.findById(newTransaction.getCounterparty())
-                .orElseThrow(() -> new ResourceNotFoundException("Counterparty id " + newTransaction.getCounterparty() + " not found!"));
+        Category category = categoryService.getCategoryById(newTransaction.getCategory()).getBody();
+        Project project = projectService.getProjectById(newTransaction.getProject()).getBody();
+        Counterparty counterparty = counterpartyService.getCounterpartyById(newTransaction.getCounterparty()).getBody();
 
         Transaction result = transactionRepository.findById(id)
                 .map(transaction -> {
@@ -433,17 +311,10 @@ public class TransactionServiceImpl implements TransactionService{
         if (oldTransaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
 
-        Account oldFromAccount = accountRepository.findById(oldTransaction.getFromAccount().getId()).orElseThrow(() ->
-                new ResourceNotFoundException("Account id " + oldTransaction.getFromAccount() + " not found!"));
-
-        Account newFromAccount = accountRepository.findById(newTransaction.getFromAccount()).orElseThrow(() ->
-                new ResourceNotFoundException("Account id " + newTransaction.getFromAccount() + " not found!"));
-
-        Account oldToAccount = accountRepository.findById(oldTransaction.getToAccount().getId()).orElseThrow(() ->
-                new ResourceNotFoundException("Account id " + oldTransaction.getToAccount() + " not found!"));
-
-        Account newToAccount = accountRepository.findById(newTransaction.getToAccount()).orElseThrow(() ->
-                new ResourceNotFoundException("Account id " + newTransaction.getToAccount() + " not found!"));
+        Account oldFromAccount = accountService.getAccountById(oldTransaction.getFromAccount().getId()).getBody();
+        Account newFromAccount = accountService.getAccountById(newTransaction.getFromAccount()).getBody();
+        Account oldToAccount = accountService.getAccountById(oldTransaction.getToAccount().getId()).getBody();
+        Account newToAccount = accountService.getAccountById(newTransaction.getToAccount()).getBody();
 
         BigDecimal balance;
         if (oldFromAccount == newFromAccount) {

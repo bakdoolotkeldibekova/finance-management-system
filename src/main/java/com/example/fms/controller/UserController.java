@@ -45,9 +45,14 @@ public class UserController {
         return userService.deleteImage(principal.getName());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseMessage blockUserById(@PathVariable Long id){
-        return userService.blockUserById(id);
+    @PutMapping("/block/{id}")
+    public ResponseMessage blockUserById(@PathVariable Long id, Principal principal){
+        return userService.blockUserById(id, principal.getName());
+    }
+
+    @PutMapping("/unBlock/{id}")
+    public ResponseEntity<User> unBlockUserById(@PathVariable Long id, Principal principal){
+        return userService.unBlockUserById(id, principal.getName());
     }
 
     @GetMapping("/email/{email}")
@@ -62,7 +67,6 @@ public class UserController {
 
     @GetMapping("/get")
     public Page<User> getAllByParam(Pageable pageable,
-                                    @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                     @RequestParam(required = false) String name,
                                     @RequestParam(required = false) Boolean isActive,
                                     @RequestParam(required = false) String surname,
@@ -70,7 +74,7 @@ public class UserController {
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore,
                                     @RequestParam(required = false) String position){
 
-        Set<User> fooSet = new LinkedHashSet<>(userService.getAll(isDeleted));
+        Set<User> fooSet = new LinkedHashSet<>(userService.getAll());
 
         if (name != null)
             fooSet.retainAll(userService.getAllByName(name));

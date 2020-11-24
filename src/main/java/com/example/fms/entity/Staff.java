@@ -12,6 +12,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,14 +24,14 @@ import java.util.Locale;
 @Entity
 @Table(name = "staff")
 @JsonInclude
-@SQLDelete(sql = "UPDATE staff SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE staff SET is_deleted=true WHERE id=?")
 @FilterDef(
 		name = "deletedStaffFilter",
 		parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
 		name = "deletedStaffFilter",
-		condition = "deleted = :isDeleted"
+		condition = "is_deleted = :isDeleted"
 )
 public class Staff extends BaseEntity {
 
@@ -50,7 +51,7 @@ public class Staff extends BaseEntity {
 	private BigDecimal salary;
 
 	@Column(name = "date")
-	private Locale date;    //Дата начала работы сотрудника
+	private LocalDateTime date;    //Дата начала работы сотрудника
 
 	@Column(name = "accepted")
 	private BigDecimal accepted;

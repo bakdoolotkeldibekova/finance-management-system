@@ -19,14 +19,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "category")
 @JsonInclude
-@SQLDelete(sql = "UPDATE category SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE category SET is_deleted=true WHERE id=?")
 @FilterDef(
 		name = "deletedCategoryFilter",
 		parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
 		name = "deletedCategoryFilter",
-		condition = "deleted = :isDeleted"
+		condition = "is_deleted = :isDeleted"
 )
 public class Category extends BaseEntity{
 

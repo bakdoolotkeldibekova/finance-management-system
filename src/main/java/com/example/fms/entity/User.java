@@ -21,16 +21,11 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @JsonInclude
-@SQLDelete(sql = "UPDATE users SET deleted=true WHERE id=?")
-@FilterDef(
-        name = "deletedUsersFilter",
-        parameters = @ParamDef(name = "isDeleted", type = "boolean")
-)
-@Filter(
-        name = "deletedUsersFilter",
-        condition = "deleted = :isDeleted"
-)
 public class User extends BaseEntity{
+
+    @JsonIgnore
+    @Column(name = "is_deleted", precision = 0)
+    private boolean deleted;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;

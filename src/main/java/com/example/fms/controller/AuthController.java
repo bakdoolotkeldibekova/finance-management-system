@@ -2,7 +2,6 @@ package com.example.fms.controller;
 
 import com.example.fms.dto.TokenDTO;
 import com.example.fms.dto.UserAuthDTO;
-import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
@@ -10,7 +9,6 @@ import com.example.fms.service.UserService;
 import com.example.fms.util.JwtUtil;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

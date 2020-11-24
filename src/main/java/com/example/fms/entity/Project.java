@@ -19,14 +19,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "project")
 @JsonInclude
-@SQLDelete(sql = "UPDATE project SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE project SET is_deleted=true WHERE id=?")
 @FilterDef(
         name = "deletedProjectFilter",
         parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
         name = "deletedProjectFilter",
-        condition = "deleted = :isDeleted"
+        condition = "is_deleted = :isDeleted"
 )
 public class Project extends BaseEntity{
 

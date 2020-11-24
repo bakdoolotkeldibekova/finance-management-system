@@ -20,14 +20,14 @@ import java.util.List;
 @Entity
 @Table(name = "department")
 @JsonInclude
-@SQLDelete(sql = "UPDATE department SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE department SET is_deleted=true WHERE id=?")
 @FilterDef(
 		name = "deletedDepartmentFilter",
 		parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
 		name = "deletedDepartmentFilter",
-		condition = "deleted = :isDeleted"
+		condition = "is_deleted = :isDeleted"
 )
 public class Department extends BaseEntity{
 

@@ -20,14 +20,14 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "counterparty")
 @JsonInclude
-@SQLDelete(sql = "UPDATE counterparty SET deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE counterparty SET is_deleted=true WHERE id=?")
 @FilterDef(
         name = "deletedCounterpartyFilter",
         parameters = @ParamDef(name = "isDeleted", type = "boolean")
 )
 @Filter(
         name = "deletedCounterpartyFilter",
-        condition = "deleted = :isDeleted"
+        condition = "is_deleted = :isDeleted"
 )
 public class Counterparty extends BaseEntity {
 
