@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.*;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/journal")
 public class JournalController {
