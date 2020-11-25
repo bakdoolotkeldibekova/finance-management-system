@@ -54,4 +54,7 @@ public class Transaction extends BaseEntity{
     @Column(name = "description")
     private String description;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
 }

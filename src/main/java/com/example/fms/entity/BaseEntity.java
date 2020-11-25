@@ -1,5 +1,6 @@
 package com.example.fms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ public class BaseEntity {
     private Long id;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdated;
+    @JsonIgnore
     @Column(name = "is_deleted", precision = 0, nullable = false)
     private boolean deleted;
 

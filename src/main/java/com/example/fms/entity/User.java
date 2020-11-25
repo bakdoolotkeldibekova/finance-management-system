@@ -23,10 +23,6 @@ import java.util.List;
 @JsonInclude
 public class User extends BaseEntity{
 
-    @JsonIgnore
-    @Column(name = "is_deleted", precision = 0)
-    private boolean deleted;
-
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
