@@ -101,10 +101,6 @@ public class AccountServiceImpl implements AccountService {
              throw new ResourceNotFoundException("Account id " + id + " was deleted!");
          return ResponseEntity.ok().body(account);
     }
-    @Override
-    public Account getById(Long id) {
-        return accountRepository.findById(id).orElse(null);
-    }
 
     @Override
     public ResponseEntity<Account> updateAccountById(AccountDTO accountDTO, Long id, String userEmail){

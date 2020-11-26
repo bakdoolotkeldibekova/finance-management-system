@@ -60,16 +60,6 @@ public class AccountController {
 
         return accountService.getAccountById(accountId);
     }
-    @GetMapping("/id/{accountId}")
-    public Account getById2(@PathVariable("accountId") @Min(1) Long accountId){
-        Account account = accountService.getById(accountId);
-        if (account == null){
-            throw new NotEnoughBalanceException("Account id " + accountId + " not found!");
-        }
-        if (account.isDeleted())
-            throw new ResourceNotFoundException("Account id " + accountId + " was deleted!");
-        return account;
-    }
 
     @PostMapping("/add")
     public ResponseEntity<Account> create(@RequestBody AccountDTO accountDTO, Principal principal) {

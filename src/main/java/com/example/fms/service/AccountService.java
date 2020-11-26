@@ -20,7 +20,6 @@ public interface AccountService {
     List<Account> getAllByDateCreatedAfter(String after);
     ResponseEntity<Account> create (AccountDTO accountDTO, String userEmail);
     ResponseEntity<Account> getAccountById(Long id);
-    Account getById(Long id);
     ResponseEntity<Account> updateAccountById(AccountDTO accountDTO, Long id, String userEmail);
     ResponseMessage deleteAccountById(Long id, String userEmail);
 }
