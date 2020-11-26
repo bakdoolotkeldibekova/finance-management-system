@@ -1,7 +1,5 @@
 package com.example.fms.controller;
 
-import com.example.fms.entity.Department;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,26 +23,24 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ContextConfiguration
 @WebAppConfiguration
-class DepartmentControllerTest {
+class JournalControllerTest {
 
     @Autowired
     private WebApplicationContext context;
 
     private MockMvc mvc;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     String secret = "neobis";
     Map<String, Object> claims = new HashMap<>();
-    String username = "1804.01026@manas.edu.kg";
+    String username = "abc@manas.edu.kg";
 
     @BeforeEach
     public void setup() {
@@ -62,12 +58,10 @@ class DepartmentControllerTest {
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
 
-
     @Test
     void getAllByParam() throws Exception{
-
         MvcResult result = mvc
-                .perform(get("/department/get")
+                .perform(get("/journal/get")
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -77,71 +71,22 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void getDepartment() throws Exception{
+    void getById() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 1)
+                .perform(get("/journal/{id}", 1)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         assertEquals(200, result.getResponse().getStatus());
+
     }
 
     @Test
-    void getDepartment_returnsError() throws Exception{
+    void getById_returnsError() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 0)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn();
-        assertEquals(404, result.getResponse().getStatus());
-    }
-
-
-    @Test
-    void addDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(post("/department/add")
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-
-
-    @Test
-    void updateDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 1)
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-    @Test
-    void updateDepartment_returnsError() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 0)
-                        .content(jsonRequest)
+                .perform(get("/journal/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -151,9 +96,9 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void deleteDepartment() throws Exception{
+    void deleteById() throws Exception{
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 1)
+                .perform(delete("/journal/{id}", 1)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -163,9 +108,9 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void deleteDepartment_returnsError() throws Exception{
+    void deleteById_returnsError() throws Exception{
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 0)
+                .perform(delete("/journal/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -173,4 +118,6 @@ class DepartmentControllerTest {
 
         assertEquals(404, result.getResponse().getStatus());
     }
+
+
 }

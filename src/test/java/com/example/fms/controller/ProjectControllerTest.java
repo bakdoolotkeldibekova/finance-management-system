@@ -1,6 +1,6 @@
 package com.example.fms.controller;
 
-import com.example.fms.entity.Department;
+import com.example.fms.entity.Project;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -28,11 +28,12 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ContextConfiguration
 @WebAppConfiguration
-class DepartmentControllerTest {
+class ProjectControllerTest {
 
     @Autowired
     private WebApplicationContext context;
@@ -62,12 +63,10 @@ class DepartmentControllerTest {
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
 
-
     @Test
     void getAllByParam() throws Exception{
-
         MvcResult result = mvc
-                .perform(get("/department/get")
+                .perform(get("/project/get")
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -77,83 +76,39 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void getDepartment() throws Exception{
+    void getById() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 1)
+                .perform(get("/project/{id}", 2)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         assertEquals(200, result.getResponse().getStatus());
+
     }
 
     @Test
-    void getDepartment_returnsError() throws Exception{
+    void getById_returnsError() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 0)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn();
-        assertEquals(404, result.getResponse().getStatus());
-    }
-
-
-    @Test
-    void addDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(post("/department/add")
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-
-
-    @Test
-    void updateDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 1)
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-    @Test
-    void updateDepartment_returnsError() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 0)
-                        .content(jsonRequest)
+                .perform(get("/project/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
 
         assertEquals(404, result.getResponse().getStatus());
+
     }
 
     @Test
-    void deleteDepartment() throws Exception{
+    void addProject() throws Exception{
+        Project project = new Project("FMS-TEAM4");
+        String jsonRequest = mapper.writeValueAsString(project);
+
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 1)
+                .perform(post("/project/add")
+                        .content(jsonRequest)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -163,9 +118,53 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void deleteDepartment_returnsError() throws Exception{
+    void updateProject() throws Exception{
+        Project project = new Project("FMS-TEAM4");
+        String jsonRequest = mapper.writeValueAsString(project);
+
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 0)
+                .perform(put("/project/update/{id}", 2)
+                        .content(jsonRequest)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+    }
+
+    @Test
+    void updateProject_returnsError() throws Exception{
+        Project project = new Project("FMS-TEAM4");
+        String jsonRequest = mapper.writeValueAsString(project);
+
+        MvcResult result = mvc
+                .perform(put("/project/update/{id}", 0)
+                        .content(jsonRequest)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertEquals(404, result.getResponse().getStatus());
+    }
+
+    @Test
+    void deleteProject() throws Exception{
+        MvcResult result = mvc
+                .perform(delete("/project/{id}", 1)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+    }
+
+    @Test
+    void deleteProject_returnsError() throws Exception{
+        MvcResult result = mvc
+                .perform(delete("/project/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())

@@ -3,6 +3,8 @@ package com.example.fms.controller;
 import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.Account;
 import com.example.fms.entity.ResponseMessage;
+import com.example.fms.exception.NotEnoughBalanceException;
+import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.service.AccountService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +57,18 @@ public class AccountController {
 
     @GetMapping("/{accountId}")
     public ResponseEntity<Account> getById(@PathVariable("accountId") @Min(1) Long accountId) {
+
         return accountService.getAccountById(accountId);
+    }
+    @GetMapping("/id/{accountId}")
+    public Account getById2(@PathVariable("accountId") @Min(1) Long accountId){
+        Account account = accountService.getById(accountId);
+        if (account == null){
+            throw new NotEnoughBalanceException("Account id " + accountId + " not found!");
+        }
+        if (account.isDeleted())
+            throw new ResourceNotFoundException("Account id " + accountId + " was deleted!");
+        return account;
     }
 
     @PostMapping("/add")

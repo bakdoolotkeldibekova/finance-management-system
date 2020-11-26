@@ -1,6 +1,8 @@
 package com.example.fms.controller;
 
+import com.example.fms.dto.StaffDTO;
 import com.example.fms.entity.Department;
+import com.example.fms.entity.Staff;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,9 +20,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -28,11 +31,12 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ContextConfiguration
 @WebAppConfiguration
-class DepartmentControllerTest {
+class StaffControllerTest {
 
     @Autowired
     private WebApplicationContext context;
@@ -62,12 +66,10 @@ class DepartmentControllerTest {
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
 
-
     @Test
     void getAllByParam() throws Exception{
-
         MvcResult result = mvc
-                .perform(get("/department/get")
+                .perform(get("/staff/get")
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -77,83 +79,42 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void getDepartment() throws Exception{
+    void getById() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 1)
+                .perform(get("/staff/{id}", 1)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         assertEquals(200, result.getResponse().getStatus());
+
     }
 
     @Test
-    void getDepartment_returnsError() throws Exception{
+    void getById_returnsError() throws Exception{
         MvcResult result = mvc
-                .perform(get("/department/{id}", 0)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn();
-        assertEquals(404, result.getResponse().getStatus());
-    }
-
-
-    @Test
-    void addDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(post("/department/add")
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-
-
-    @Test
-    void updateDepartment() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 1)
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
-
-    @Test
-    void updateDepartment_returnsError() throws Exception{
-        Department department = new Department("Neolabs");
-        String jsonRequest = mapper.writeValueAsString(department);
-
-        MvcResult result = mvc
-                .perform(put("/department/update/{id}", 0)
-                        .content(jsonRequest)
+                .perform(get("/staff/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
 
         assertEquals(404, result.getResponse().getStatus());
+
     }
 
     @Test
-    void deleteDepartment() throws Exception{
+    void addStaff() throws Exception{
+        List<Long> departments = new ArrayList<>();
+        departments.add(1L);
+        LocalDateTime date = LocalDateTime.parse("2020-10-10 18:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        StaffDTO staff = new StaffDTO("Bulut", departments, "student", BigDecimal.valueOf(200), date, BigDecimal.valueOf(200));
+        String jsonRequest = mapper.writeValueAsString(staff);
+
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 1)
+                .perform(post("/staff/add")
+                        .content(jsonRequest)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -163,9 +124,59 @@ class DepartmentControllerTest {
     }
 
     @Test
-    void deleteDepartment_returnsError() throws Exception{
+    void updateStaff() throws Exception{
+        List<Long> departments = new ArrayList<>();
+        departments.add(1L);
+        LocalDateTime date = LocalDateTime.parse("2020-10-10 18:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        StaffDTO staff = new StaffDTO("Bulut", departments, "student", BigDecimal.valueOf(200), date, BigDecimal.valueOf(200));
+        String jsonRequest = mapper.writeValueAsString(staff);
+
         MvcResult result = mvc
-                .perform(delete("/department/{id}", 0)
+                .perform(put("/staff/update/{id}", 1)
+                        .content(jsonRequest)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+    }
+
+    @Test
+    void updateStaff_returnsError() throws Exception{
+        List<Long> departments = new ArrayList<>();
+        departments.add(1L);
+        LocalDateTime date = LocalDateTime.parse("2020-10-10 18:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        StaffDTO staff = new StaffDTO("Bulut", departments, "student", BigDecimal.valueOf(200), date, BigDecimal.valueOf(200));
+        String jsonRequest = mapper.writeValueAsString(staff);
+
+        MvcResult result = mvc
+                .perform(put("/staff/update/{id}", 0)
+                        .content(jsonRequest)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertEquals(404, result.getResponse().getStatus());
+    }
+
+    @Test
+    void deleteStaff() throws Exception{
+        MvcResult result = mvc
+                .perform(delete("/staff/{id}", 1)
+                        .header("Authorization", createToken(claims, username))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
+    }
+
+    @Test
+    void deleteStaff_returnsError() throws Exception{
+        MvcResult result = mvc
+                .perform(delete("/staff/{id}", 0)
                         .header("Authorization", createToken(claims, username))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
