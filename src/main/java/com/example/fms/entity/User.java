@@ -64,4 +64,8 @@ public class User extends BaseEntity{
     @JoinColumn(name = "image_id")
     private Image image;
 
+    @JsonIgnore
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
 }

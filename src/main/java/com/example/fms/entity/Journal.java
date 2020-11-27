@@ -28,6 +28,6 @@ public class Journal extends BaseEntity{
     @Column(name = "action")
     private String action;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted;
+//    @Column(name = "is_deleted", nullable = false)
+//    private boolean deleted;
 }

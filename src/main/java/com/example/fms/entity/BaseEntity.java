@@ -17,7 +17,7 @@ public class BaseEntity {
     private Long id;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdated;
-    @JsonIgnore
+    //@JsonIgnore
     @Column(name = "is_deleted", precision = 0, nullable = false)
     private boolean deleted;
 

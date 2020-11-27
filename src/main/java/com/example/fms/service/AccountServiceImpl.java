@@ -3,6 +3,7 @@ package com.example.fms.service;
 import com.example.fms.dto.AccountDTO;
 import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
+import com.example.fms.exception.ToMaintainDataIntegrityException;
 import com.example.fms.repository.AccountRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.UserRepository;
@@ -132,6 +133,10 @@ public class AccountServiceImpl implements AccountService {
 
         if (account.isDeleted())
             throw new ResourceNotFoundException("Account id " + id + " was deleted!");
+
+        if (account.getBalance().compareTo(BigDecimal.ZERO) > 0){
+            throw new ToMaintainDataIntegrityException("Account balance: " + account.getBalance() + ". You can only delete an account with a zero balance");
+        }
 
         accountRepository.deleteById(id);
 
