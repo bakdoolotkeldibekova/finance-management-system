@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 
 @CrossOrigin
 @RestController
@@ -37,9 +38,9 @@ public class AuthController {
         return userService.save(userRegistrDTO);
     }
 
-    @PutMapping("/changePassword")
-    public ResponseEntity<User> changePassword(@RequestBody UserAuthDTO userAuthDTO){
-        return userService.changePassword(userAuthDTO.getEmail(), userAuthDTO.getPassword());
+    @PutMapping("/changeForgotPassword/{dateTime}")
+    public ResponseEntity<User> changeForgotPassword(@RequestBody UserAuthDTO userAuthDTO, @PathVariable String dateTime){
+        return userService.changeForgotPassword(userAuthDTO.getEmail(), userAuthDTO.getPassword(), dateTime);
     }
 
     @PostMapping("/forgotPassword/{email}") //на email юзера приходит уникальная ссылка со сроком истечения в 5 минут для изменения пароля на почту.

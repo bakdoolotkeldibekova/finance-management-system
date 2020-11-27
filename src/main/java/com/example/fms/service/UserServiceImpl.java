@@ -11,8 +11,6 @@ import com.example.fms.repository.ImageRepository;
 import com.example.fms.repository.JournalRepository;
 import com.example.fms.repository.RoleRepository;
 import com.example.fms.repository.UserRepository;
-import org.hibernate.Filter;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,12 +21,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -45,8 +43,6 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
     @Autowired
     private ImageRepository imageRepository;
-    @Autowired
-    private EntityManager entityManager;
 
     @Override
     public ResponseEntity<User> save(UserRegistrDTO userRegistrDTO) {
@@ -120,20 +116,49 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email);
         if (user == null)
             return new ResponseMessage(HttpStatus.NOT_FOUND.value(), "User email " + email + " not found!");
+
+        LocalDateTime localDateTime = LocalDateTime.now();
         String message = "Hello, ! \n" +
-                " Please, visit next link to change your password: http:localhost:8080/registr/changePassword";
+                " Please, visit next link to change your password: http:localhost:8080/registr/changeForgotPassword/" + localDateTime;
         if (!mailService.send(user.getEmail(), "Change password", message))
             return new ResponseMessage(HttpStatus.BAD_GATEWAY.value(), "smtp server failure, request was not sent");
         return new ResponseMessage(HttpStatus.OK.value(), "Successfully sent");
     }
 
     @Override
-    public ResponseEntity<User> changePassword(String email, String password) {
+    public ResponseEntity<User> changeForgotPassword(String email, String newPassword, String localDateTime) {
         User user = userRepository.findByEmail(email);
         if (user == null)
             throw new ResourceNotFoundException("User email " + email + " not found!");
 
-        user.setPassword(encoder.encode(password));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        LocalDateTime start = LocalDateTime.parse(localDateTime, formatter);
+        LocalDateTime end = LocalDateTime.now();
+
+        long minutes = ChronoUnit.MINUTES.between(start, end);
+
+        if (minutes > 5)
+            throw new ResourceNotFoundException("Link works only 5 minutes after sending");
+
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("changed password");
+        journal.setUser(user);
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+        return ResponseEntity.ok().body(user);
+    }
+
+    @Override
+    public ResponseEntity<User> changePassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email);
+        if (user == null)
+            throw new ResourceNotFoundException("User email " + email + " not found!");
+
+        user.setPassword(encoder.encode(newPassword));
         userRepository.save(user);
 
         Journal journal = new Journal();

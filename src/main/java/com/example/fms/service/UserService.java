@@ -19,7 +19,8 @@
         void createAdmin(UserAdminDTO userAdminDTO);
         ResponseMessage activateUser(String code);
         ResponseMessage sendForgotPassword(String email);
-        ResponseEntity<User> changePassword(String email, String password);
+        ResponseEntity<User> changeForgotPassword(String email, String newPassword, String dateTime);
+        ResponseEntity<User> changePassword(String email, String newPassword);
         void createUser(User user);
 
         ResponseEntity<User> setPosition(String position, String userEmail);

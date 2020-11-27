@@ -56,6 +56,11 @@ public class UserController {
         return userService.unBlockUserById(id, principal.getName());
     }
 
+    @PutMapping("/changePassword/{newPassword}")
+    public ResponseEntity<User> changePassword(@PathVariable String newPassword, Principal principal){
+        return userService.changePassword(principal.getName(), newPassword);
+    }
+
     @GetMapping("/email/{email}")
     public ResponseEntity<User> getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
         return userService.getByEmail(email);
