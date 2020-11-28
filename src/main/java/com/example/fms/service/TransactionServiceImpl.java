@@ -216,166 +216,182 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public ResponseEntity<Transaction> updateIncomeById(TransactionIncomeDTO newTransaction, Long id, String userEmail) {
-        Transaction oldTransaction = transactionRepository
+    public ResponseEntity<Transaction> updateIncomeById(TransactionIncomeDTO transactionIncomeDTO, Long id, String userEmail) {
+        Transaction transaction = transactionRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
-
-        if (oldTransaction.isDeleted())
+        if (transaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
+        if (!transaction.getAction().equals("INCOME"))
+            throw new ResourceNotFoundException("Transaction id " + id + " is NOT INCOME action!");
 
-        Account oldAccount = accountService.getAccountById(oldTransaction.getToAccount().getId()).getBody();
-        Account newAccount = accountService.getAccountById(newTransaction.getToAccount()).getBody();
+        if (transaction.getCategory().getId() != transactionIncomeDTO.getCategory()){
+            Category category = categoryService.getCategoryById(transactionIncomeDTO.getCategory()).getBody();
+            transaction.setCategory(category);
+        }
+        if (transaction.getProject().getId() != transactionIncomeDTO.getProject()){
+            Project project = projectService.getProjectById(transactionIncomeDTO.getProject()).getBody();
+            transaction.setProject(project);
+        }
+        if (transaction.getCounterparty().getId() != transactionIncomeDTO.getCounterparty()){
+            Counterparty counterparty = counterpartyService.getCounterpartyById(transactionIncomeDTO.getCounterparty()).getBody();
+            transaction.setCounterparty(counterparty);
+        }
+
+        Account oldAccount = accountService.getAccountById(transaction.getToAccount().getId()).getBody();
+        Account newAccount = accountService.getAccountById(transactionIncomeDTO.getToAccount()).getBody();
 
         BigDecimal balance;
-        if (oldAccount == newAccount) {
-            balance = newAccount.getBalance().add(newTransaction.getBalance().subtract(oldTransaction.getBalance()));
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
-                throw new NotEnoughBalanceException("Not enough balance in account id " + newAccount.getId() + "!");
-        } else {
-            balance = oldAccount.getBalance().subtract(newTransaction.getBalance());
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
+        if (oldAccount.getId() == newAccount.getId()){
+            balance = oldAccount.getBalance().subtract(transaction.getBalance()).add(transactionIncomeDTO.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
                 throw new NotEnoughBalanceException("Not enough balance in account id " + oldAccount.getId() + "!");
             oldAccount.setBalance(balance);
-            balance = newAccount.getBalance().add(newTransaction.getBalance());
+            transaction.setToAccount(accountRepository.save(oldAccount));
+        } else {
+            balance = oldAccount.getBalance().subtract(transaction.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
+                throw new NotEnoughBalanceException("Not enough balance in account id " + oldAccount.getId() + "!");
+            oldAccount.setBalance(balance);
+            accountRepository.save(oldAccount);
+
+            newAccount.setBalance(newAccount.getBalance().add(transactionIncomeDTO.getBalance()));
+            transaction.setToAccount(accountRepository.save(newAccount));
         }
-        newAccount.setBalance(balance);
 
-        Category category = categoryService.getCategoryById(newTransaction.getCategory()).getBody();
-        Project project = projectService.getProjectById(newTransaction.getProject()).getBody();
-        Counterparty counterparty = counterpartyService.getCounterpartyById(newTransaction.getCounterparty()).getBody();
-
-        Transaction result = transactionRepository.findById(id)
-                .map(transaction -> {
-                    transaction.setCategory(category);
-                    transaction.setToAccount(newAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setProject(project);
-                    transaction.setCounterparty(counterparty);
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userRepository.findByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
-        return ResponseEntity.ok().body(result);
+        transaction.setBalance(transactionIncomeDTO.getBalance());
+        transaction.setDescription(transactionIncomeDTO.getDescription());
+        transaction.setUser(userRepository.findByEmail(userEmail));
+        transaction.setDeleted(false);
+        transactionRepository.save(transaction);
+        return ResponseEntity.ok().body(transaction);
     }
 
     @Override
-    public ResponseEntity<Transaction> updateExpenseById(TransactionExpenseDTO newTransaction, Long id, String userEmail) {
-        Transaction oldTransaction = transactionRepository
+    public ResponseEntity<Transaction> updateExpenseById(TransactionExpenseDTO transactionExpenseDTO, Long id, String userEmail) {
+        Transaction transaction = transactionRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
-
-        if (oldTransaction.isDeleted())
+        if (transaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
+        if (!transaction.getAction().equals("EXPENSE"))
+            throw new ResourceNotFoundException("Transaction id " + id + " is NOT EXPENSE action!");
 
-        Account oldAccount = accountService.getAccountById(oldTransaction.getFromAccount().getId()).getBody();
-        Account newAccount = accountService.getAccountById(newTransaction.getFromAccount()).getBody();
+        if (transaction.getCategory().getId() != transactionExpenseDTO.getCategory()){
+            Category category = categoryService.getCategoryById(transactionExpenseDTO.getCategory()).getBody();
+            transaction.setCategory(category);
+        }
+        if (transaction.getProject().getId() != transactionExpenseDTO.getProject()){
+            Project project = projectService.getProjectById(transactionExpenseDTO.getProject()).getBody();
+            transaction.setProject(project);
+        }
+        if (transaction.getCounterparty().getId() != transactionExpenseDTO.getCounterparty()){
+            Counterparty counterparty = counterpartyService.getCounterpartyById(transactionExpenseDTO.getCounterparty()).getBody();
+            transaction.setCounterparty(counterparty);
+        }
+
+        Account oldAccount = accountService.getAccountById(transaction.getFromAccount().getId()).getBody();
+        Account newAccount = accountService.getAccountById(transactionExpenseDTO.getFromAccount()).getBody();
 
         BigDecimal balance;
-        if (oldAccount == newAccount) {
-            balance = newAccount.getBalance().add(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
-                throw new NotEnoughBalanceException("Not enough balance in account id " + newAccount.getId() + "!");
-        } else {
-            balance = oldAccount.getBalance().add(newTransaction.getBalance());
-            oldAccount.setBalance(balance);
-            balance = newAccount.getBalance().subtract(newTransaction.getBalance());
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
+        if (oldAccount.getId() == newAccount.getId()){
+            balance = oldAccount.getBalance().add(transaction.getBalance()).subtract(transactionExpenseDTO.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
                 throw new NotEnoughBalanceException("Not enough balance in account id " + oldAccount.getId() + "!");
+            oldAccount.setBalance(balance);
+            transaction.setFromAccount(accountRepository.save(oldAccount));
+        } else {
+            balance = newAccount.getBalance().subtract(transactionExpenseDTO.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
+                throw new NotEnoughBalanceException("Not enough balance in account id " + newAccount.getId() + "!");
+            newAccount.setBalance(balance);
+            transaction.setFromAccount(accountRepository.save(newAccount));
+
+            oldAccount.setBalance(oldAccount.getBalance().add(transaction.getBalance()));
+            accountRepository.save(oldAccount);
         }
-        newAccount.setBalance(balance);
 
-        Category category = categoryService.getCategoryById(newTransaction.getCategory()).getBody();
-        Project project = projectService.getProjectById(newTransaction.getProject()).getBody();
-        Counterparty counterparty = counterpartyService.getCounterpartyById(newTransaction.getCounterparty()).getBody();
-
-        Transaction result = transactionRepository.findById(id)
-                .map(transaction -> {
-                    transaction.setCategory(category);
-                    transaction.setFromAccount(newAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setProject(project);
-                    transaction.setCounterparty(counterparty);
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userRepository.findByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
-        return ResponseEntity.ok().body(result);
+        transaction.setBalance(transactionExpenseDTO.getBalance());
+        transaction.setDescription(transactionExpenseDTO.getDescription());
+        transaction.setUser(userRepository.findByEmail(userEmail));
+        transaction.setDeleted(false);
+        transactionRepository.save(transaction);
+        return ResponseEntity.ok().body(transaction);
     }
 
     @Override
-    public ResponseEntity<Transaction> updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail) {
-        Transaction oldTransaction = transactionRepository.findById(id).orElseThrow(() ->
+    public ResponseEntity<Transaction> updateRemittanceById(TransactionRemittanceDTO transactionRemittanceDTO, Long id, String userEmail) {
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Transaction id " + id + " not found!"));
-
-        if (oldTransaction.isDeleted())
+        if (transaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
+        if (!transaction.getAction().equals("REMITTANCE"))
+            throw new ResourceNotFoundException("Transaction id " + id + " is NOT REMITTANCE action!");
 
-        Account oldFromAccount = accountService.getAccountById(oldTransaction.getFromAccount().getId()).getBody();
-        Account newFromAccount = accountService.getAccountById(newTransaction.getFromAccount()).getBody();
-        Account oldToAccount = accountService.getAccountById(oldTransaction.getToAccount().getId()).getBody();
-        Account newToAccount = accountService.getAccountById(newTransaction.getToAccount()).getBody();
+        Account oldFromAccount = accountService.getAccountById(transaction.getFromAccount().getId()).getBody();
+        Account newFromAccount = accountService.getAccountById(transactionRemittanceDTO.getFromAccount()).getBody();
+        Account oldToAccount = accountService.getAccountById(transaction.getToAccount().getId()).getBody();
+        Account newToAccount = accountService.getAccountById(transactionRemittanceDTO.getToAccount()).getBody();
 
         BigDecimal balance;
-        if (oldFromAccount == newFromAccount) {
-            balance = oldFromAccount.getBalance().add(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
+        if (oldFromAccount.getId() == newFromAccount.getId()) {
+            balance = oldFromAccount.getBalance().add(transaction.getBalance()).subtract(transactionRemittanceDTO.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
                 throw new NotEnoughBalanceException("Not enough balance in account id " + oldFromAccount.getId() + "!");
             oldFromAccount.setBalance(balance);
+            transaction.setFromAccount(accountRepository.save(oldFromAccount));
 
             if (oldToAccount == newToAccount) {
-                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
-                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                balance = oldToAccount.getBalance().subtract(transaction.getBalance()).add(transactionRemittanceDTO.getBalance());
+                if (balance.compareTo(BigDecimal.ZERO) < 0)
                     throw new NotEnoughBalanceException("Not enough balance in account id " + oldToAccount.getId() + "!");
                 oldToAccount.setBalance(balance);
+                transaction.setToAccount(accountRepository.save(oldToAccount));
             } else {
-                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance());
-                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                balance = oldToAccount.getBalance().subtract(transaction.getBalance());
+                if (balance.compareTo(BigDecimal.ZERO) < 0)
                     throw new NotEnoughBalanceException("Not enough balance in account id " + oldToAccount.getId() + "!");
                 oldToAccount.setBalance(balance);
+                accountRepository.save(oldToAccount);
 
-                balance = newToAccount.getBalance().add(newTransaction.getBalance());
+                balance = newToAccount.getBalance().add(transactionRemittanceDTO.getBalance());
                 newToAccount.setBalance(balance);
+                transaction.setToAccount(accountRepository.save(newToAccount));
             }
         } else {
-            balance = oldFromAccount.getBalance().add(oldTransaction.getBalance());
+            balance = oldFromAccount.getBalance().add(transaction.getBalance());
             oldFromAccount.setBalance(balance);
+            accountRepository.save(oldFromAccount);
 
-            balance = newFromAccount.getBalance().subtract(newTransaction.getBalance());
-            if (BigDecimal.ZERO.compareTo(balance) == 1)
+            balance = newFromAccount.getBalance().subtract(transactionRemittanceDTO.getBalance());
+            if (balance.compareTo(BigDecimal.ZERO) < 0)
                 throw new NotEnoughBalanceException("Not enough balance in account id " + newFromAccount.getId() + "!");
             newFromAccount.setBalance(balance);
+            transaction.setFromAccount(accountRepository.save(newFromAccount));
 
             if (oldToAccount == newToAccount) {
-                balance = newToAccount.getBalance().subtract(oldTransaction.getBalance().subtract(newTransaction.getBalance()));
-                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                balance = newToAccount.getBalance().subtract(transaction.getBalance()).add(transactionRemittanceDTO.getBalance());
+                if (balance.compareTo(BigDecimal.ZERO) < 0)
                     throw new NotEnoughBalanceException("Not enough balance in account id " + newToAccount.getId() + "!");
                 newToAccount.setBalance(balance);
+                transaction.setToAccount(accountRepository.save(newToAccount));
             } else {
-                balance = oldToAccount.getBalance().subtract(oldTransaction.getBalance());
-                if (BigDecimal.ZERO.compareTo(balance) == 1)
+                balance = oldToAccount.getBalance().subtract(transaction.getBalance());
+                if (balance.compareTo(BigDecimal.ZERO) < 0)
                     throw new NotEnoughBalanceException("Not enough balance in account id " + oldToAccount.getId() + "!");
                 oldToAccount.setBalance(balance);
+                accountRepository.save(oldToAccount);
 
-                balance = newToAccount.getBalance().add(newTransaction.getBalance());
-                if (BigDecimal.ZERO.compareTo(balance) == 1)
-                    throw new NotEnoughBalanceException("Not enough balance in account id " + newToAccount.getId() + "!");
+                balance = newToAccount.getBalance().add(transactionRemittanceDTO.getBalance());
                 newToAccount.setBalance(balance);
+                transaction.setToAccount(accountRepository.save(newToAccount));
             }
 
         }
 
-        Transaction result = transactionRepository.findById(id)
-                .map(transaction -> {
-                    transaction.setFromAccount(newFromAccount);
-                    transaction.setToAccount(newToAccount);
-                    transaction.setBalance(newTransaction.getBalance());
-                    transaction.setDescription(newTransaction.getDescription());
-                    transaction.setUser(userRepository.findByEmail(userEmail));
-                    transaction.setDeleted(false);
-                    return transactionRepository.save(transaction);
-                }).orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
-        return ResponseEntity.ok().body(result);
+        transaction.setBalance(transactionRemittanceDTO.getBalance());
+        transaction.setDescription(transactionRemittanceDTO.getDescription());
+        transaction.setUser(userRepository.findByEmail(userEmail));
+        transaction.setDeleted(false);
+        return ResponseEntity.ok().body(transaction);
     }
 
     @Override
