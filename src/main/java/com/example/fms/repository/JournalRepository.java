@@ -9,7 +9,8 @@ import java.util.List;
 
 @Repository
 public interface JournalRepository extends JpaRepository<Journal, Long> {
-    List<Journal> findAllByDeleted (boolean isDeleted);
+    List<Journal> findAllByOrderByDateCreatedDesc();
+    List<Journal> findAllByDeletedOrderByDateCreatedDesc (boolean isDeleted);
     List<Journal> findAllByTableContainingIgnoringCase(String table);
     List<Journal> findAllByActionContainingIgnoringCase(String action);
     List<Journal> findAllByUserId(Long userId);

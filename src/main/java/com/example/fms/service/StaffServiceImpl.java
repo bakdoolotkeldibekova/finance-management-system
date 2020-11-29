@@ -41,7 +41,7 @@ public class StaffServiceImpl implements StaffService{
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedStaffFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Staff> staffList = staffRepository.findAll();
+        List<Staff> staffList = staffRepository.findAllByOrderByDateCreatedDesc();
         session.disableFilter("deletedStaffFilter");
         return staffList;
     }

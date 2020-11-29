@@ -37,7 +37,7 @@ public class DepartmentServiceImpl implements DepartmentService{
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedDepartmentFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Department> departments = departmentRepository.findAll();
+        List<Department> departments = departmentRepository.findAllByOrderByDateCreatedDesc();
         session.disableFilter("deletedDepartmentFilter");
         return departments;
    }

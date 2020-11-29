@@ -17,6 +17,6 @@ public class RoleController {
 
     @GetMapping
     public List<Role> getAll(){
-        return roleRepository.findAll();
+        return roleRepository.findAllByOrderByDateCreatedDesc();
     }
 }

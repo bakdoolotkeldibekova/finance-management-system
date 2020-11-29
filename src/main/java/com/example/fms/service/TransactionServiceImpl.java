@@ -42,12 +42,12 @@ public class TransactionServiceImpl implements TransactionService{
 
     @Override
     public List<Transaction> getAllForUser() {
-        return transactionRepository.findAllByDeleted(false);
+        return transactionRepository.findAllByDeletedOrderByDateCreatedDesc(false);
     }
 
     @Override
     public List<Transaction> getAllForAdmin() {
-        return transactionRepository.findAll();
+        return transactionRepository.findAllByOrderByDateCreatedDesc();
     }
 
     @Override
@@ -391,6 +391,7 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setDescription(transactionRemittanceDTO.getDescription());
         transaction.setUser(userRepository.findByEmail(userEmail));
         transaction.setDeleted(false);
+        transactionRepository.save(transaction);
         return ResponseEntity.ok().body(transaction);
     }
 

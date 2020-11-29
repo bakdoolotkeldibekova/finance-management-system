@@ -40,7 +40,7 @@ public class AccountServiceImpl implements AccountService {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedAccountFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Account> accounts = accountRepository.findAll();
+        List<Account> accounts = accountRepository.findAllByOrderByDateCreatedDesc();
         session.disableFilter("deletedAccountFilter");
         return accounts;
     }

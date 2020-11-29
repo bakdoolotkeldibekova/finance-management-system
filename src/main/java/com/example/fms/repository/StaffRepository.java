@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface StaffRepository extends JpaRepository<Staff, Long> {
+    List<Staff> findAllByOrderByDateCreatedDesc();
     List<Staff> findAllByNameContainingIgnoringCase(String name);
 
     List<Staff> findAllByDateCreatedAfter(LocalDateTime after);

@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAll() {
-       return userRepository.findAll();
+       return userRepository.findAllByOrderByDateCreatedDesc();
     }
 
     @Override

@@ -37,7 +37,7 @@ public class ProjectServiceImpl implements ProjectService {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedProjectFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Project> projects = projectRepository.findAll();
+        List<Project> projects = projectRepository.findAllByOrderByDateCreatedDesc();
         session.disableFilter("deletedProjectFilter");
         return projects;
     }

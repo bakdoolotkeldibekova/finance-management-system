@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+    List<Category> findAllByOrderByDateCreatedDesc();
     List<Category> findAllByNameContainingIgnoringCase(String name);
     List<Category> findAllByDateCreatedAfter(LocalDateTime after);
     List<Category> findAllByDateCreatedBefore(LocalDateTime before);

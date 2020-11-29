@@ -37,7 +37,7 @@ public class CategoryServiceImpl implements CategoryService{
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedCategoryFilter");
         filter.setParameter("isDeleted", isDeleted);
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAllByOrderByDateCreatedDesc();
         session.disableFilter("deletedCategoryFilter");
         return categories;
     }

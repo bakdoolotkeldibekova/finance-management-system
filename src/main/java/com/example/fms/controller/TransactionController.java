@@ -105,21 +105,6 @@ public class TransactionController {
         return transactionService.addRemittance(transactionRemittanceDTO, principal.getName());
     }
 
-//    @PostMapping("/addIncome")
-//    public ResponseEntity<Transaction> addIncome (@RequestBody TransactionIncomeDTO transactionIncomeDTO, Principal principal){
-//        return transactionService.addTransaction(transactionIncomeDTO, principal.getName());
-//    }
-//
-//    @PostMapping("/addExpense")
-//    public ResponseEntity<Transaction> addExpense (@RequestBody TransactionExpenseDTO transactionExpenseDTO, Principal principal){
-//       return transactionService.addTransaction(transactionExpenseDTO, principal.getName());
-//    }
-//
-//    @PostMapping("/addRemittance")
-//    public ResponseEntity<Transaction> addRemittance (@RequestBody TransactionRemittanceDTO transactionRemittanceDTO, Principal principal){
-//        return transactionService.addTransaction(transactionRemittanceDTO, principal.getName());
-//    }
-
     @PutMapping("/updateIncome/{id}")
     public ResponseEntity<Transaction> updateIncome (@RequestBody TransactionIncomeDTO newTransaction, @PathVariable Long id, Principal principal) {
         String email = principal.getName();

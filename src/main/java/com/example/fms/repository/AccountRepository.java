@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
+    List<Account> findAllByOrderByDateCreatedDesc();
     List<Account> findAllByNameContainingIgnoringCase(String name);
     List<Account> findAllByBalanceLessThanEqual(BigDecimal balance);
     List<Account> findAllByBalanceGreaterThanEqual(BigDecimal balance);

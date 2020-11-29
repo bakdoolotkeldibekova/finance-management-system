@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
+    List<Project> findAllByOrderByDateCreatedDesc();
     List<Project> findAllByNameContainingIgnoringCase(String name);
     List<Project> findAllByDateCreatedAfter(LocalDateTime after);
     List<Project> findAllByDateCreatedBefore(LocalDateTime before);

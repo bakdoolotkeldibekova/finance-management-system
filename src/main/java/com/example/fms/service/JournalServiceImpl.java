@@ -43,7 +43,7 @@ public class JournalServiceImpl implements JournalService {
 
     @Override
     public List<Journal> getAllForUser() {
-        return journalRepository.findAllByDeleted(false);
+        return journalRepository.findAllByDeletedOrderByDateCreatedDesc(false);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class JournalServiceImpl implements JournalService {
 
     @Override
     public List<Journal> getAllForAdmin() {
-        return journalRepository.findAll();
+        return journalRepository.findAllByOrderByDateCreatedDesc();
     }
 
     @Override
