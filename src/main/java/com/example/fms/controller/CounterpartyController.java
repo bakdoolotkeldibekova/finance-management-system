@@ -4,6 +4,8 @@ import com.example.fms.dto.CounterpartyDTO;
 import com.example.fms.entity.Counterparty;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.service.CounterpartyService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,12 @@ public class CounterpartyController {
         this.counterpartyService = counterpartyService;
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<Counterparty> getAllByParam(Pageable pageable,
                                             @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,

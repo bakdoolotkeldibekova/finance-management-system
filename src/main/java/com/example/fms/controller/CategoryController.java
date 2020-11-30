@@ -4,6 +4,8 @@ import com.example.fms.dto.CategoryDTO;
 import com.example.fms.entity.Category;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.service.CategoryService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,12 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<Category> getAllByParam(Pageable pageable,
                                         @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,

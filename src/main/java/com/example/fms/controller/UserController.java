@@ -4,6 +4,8 @@ import com.example.fms.dto.UserDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,6 +73,12 @@ public class UserController {
         return userService.getById(id);
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<User> getAllByParam(Pageable pageable,
                                     @RequestParam(required = false) String name,

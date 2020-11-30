@@ -7,6 +7,8 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.Transaction;
 import com.example.fms.repository.UserRepository;
 import com.example.fms.service.TransactionService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -43,6 +46,12 @@ public class TransactionController {
         else return transactionService.getByIdForUser(id);
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<Transaction> getAllByParam(Pageable pageable,
                                            @RequestParam(required = false) String action,

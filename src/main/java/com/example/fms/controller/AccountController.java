@@ -6,6 +6,8 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.exception.NotEnoughBalanceException;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.service.AccountService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,7 +32,12 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<Account> getAllByParam(Pageable pageable,
                                        @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,

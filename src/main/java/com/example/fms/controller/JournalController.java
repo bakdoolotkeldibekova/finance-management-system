@@ -5,6 +5,8 @@ import com.example.fms.entity.ResponseMessage;
 import com.example.fms.repository.UserRepository;
 import com.example.fms.service.JournalService;
 import com.example.fms.service.UserService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -41,6 +43,12 @@ public class JournalController {
         return journalService.getByIdForUser(id);
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "Number of records per page."),
+    })
     @GetMapping("/get")
     public Page<Journal> getAllByParam(Pageable pageable,
                                        @RequestParam(required = false) String table,
