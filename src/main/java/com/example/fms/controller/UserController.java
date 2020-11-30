@@ -68,7 +68,7 @@ public class UserController {
         return userService.getByEmail(email);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<User> getById(@PathVariable Long id){
         return userService.getById(id);
     }
@@ -79,6 +79,12 @@ public class UserController {
             @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
                     value = "Number of records per page."),
     })
+
+    @GetMapping("/profile")
+    public ResponseEntity<User> getUserForProfile(Principal principal){
+        return userService.getByEmail(principal.getName());
+    }
+
     @GetMapping("/get")
     public Page<User> getAllByParam(Pageable pageable,
                                     @RequestParam(required = false) String name,
