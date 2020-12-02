@@ -100,21 +100,21 @@ class UserControllerTest {
         assertEquals(404, result.getResponse().getStatus());
     }
 
-    @Test
-    void createUser() throws Exception{
-        UserDTO user = new UserDTO("zhazgul004@gmail.com");
-        String jsonRequest = mapper.writeValueAsString(user);
-
-        MvcResult result = mvc
-                .perform(post("/user/user")
-                        .content(jsonRequest)
-                        .header("Authorization", createToken(claims, username))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        assertEquals(200, result.getResponse().getStatus());
-    }
+//    @Test
+//    void createUser() throws Exception{
+//        UserDTO user = new UserDTO("zhazgul004@gmail.com");
+//        String jsonRequest = mapper.writeValueAsString(user);
+//
+//        MvcResult result = mvc
+//                .perform(post("/user/user")
+//                        .content(jsonRequest)
+//                        .header("Authorization", createToken(claims, username))
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk())
+//                .andReturn();
+//
+//        assertEquals(200, result.getResponse().getStatus());
+//    }
 
     @Test
     void getByEmail() throws Exception{

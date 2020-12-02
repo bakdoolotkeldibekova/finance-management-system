@@ -26,6 +26,7 @@
         ResponseEntity<User> setPosition(String position, String userEmail);
         ResponseEntity<User> setImage(MultipartFile multipartFile, String userEmail) throws IOException;
         ResponseMessage deleteImage(String email);
+        ResponseEntity<User> setDepartmentList(List<Long> departmentIdList, String userEmail, String admin);
 
         List<User> getAll();
         Page<User> getByPage(List<User> list, Pageable pageable);
@@ -36,6 +37,7 @@
         List<User> getAllByDateCreatedBefore(String before);
         List<User> getAllByName(String name);
         List<User> getAllBySurname(String surname);
+        List<User> getAllByDepartments(List<Long> departmentIdList);
 
         ResponseEntity<User> getByEmail(String email);
         ResponseEntity<User> getById(Long id);

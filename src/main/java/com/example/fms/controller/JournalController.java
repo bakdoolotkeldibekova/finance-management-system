@@ -40,7 +40,7 @@ public class JournalController {
         String email = principal.getName();
         if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             return journalService.getByIdForAdmin(id);
-        return journalService.getByIdForUser(id);
+        return journalService.getByIdForUser(id, email);
     }
 
     @ApiImplicitParams({
@@ -61,7 +61,7 @@ public class JournalController {
         if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             fooSet = new LinkedHashSet<>(journalService.getAllForAdmin());
         else
-            fooSet = new LinkedHashSet<>(journalService.getAllForUser());
+            fooSet = new LinkedHashSet<>(journalService.getAllForUser(email));
 
         if (table != null)
             fooSet.retainAll(journalService.getAllByTable(table));

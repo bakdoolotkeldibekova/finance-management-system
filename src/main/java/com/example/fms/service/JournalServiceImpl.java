@@ -1,10 +1,10 @@
 package com.example.fms.service;
 
-import com.example.fms.entity.Journal;
-import com.example.fms.entity.ResponseMessage;
-import com.example.fms.entity.Transaction;
+import com.example.fms.entity.*;
+import com.example.fms.exception.AccessDenied;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
+import com.example.fms.repository.TransactionRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,17 +34,44 @@ public class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public ResponseEntity<Journal> getByIdForUser(Long id){
+    public ResponseEntity<Journal> getByIdForUser(Long id, String email){
         Journal journal = journalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
         if (journal.isDeleted())
             throw new ResourceNotFoundException("Journal id " + id + " not found!");
+
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(email).getDepartments()){
+            User user = journal.getUser();
+            if (user != null) {
+                if (user.getDepartments().contains(dep)) {
+                    check = true;
+                    break;
+                }
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
+
         return ResponseEntity.ok().body(journal);
     }
 
     @Override
-    public List<Journal> getAllForUser() {
-        return journalRepository.findAllByDeletedOrderByDateCreatedDesc(false);
+    public List<Journal> getAllForUser(String email) {
+        List<Department> departments = userRepository.findByEmail(email).getDepartments();
+        List<Journal> journals = new ArrayList<>();
+        for (Journal journal : journalRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
+            for (Department department : departments) {
+                   User user = journal.getUser();
+                   if (user != null){
+                       if (user.getDepartments().contains(department)) {
+                           journals.add(journal);
+                       }
+                   }
+            }
+        }
+        return journals;
     }
 
     @Override
@@ -94,6 +122,20 @@ public class JournalServiceImpl implements JournalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
         if (journal1.isDeleted())
             throw new ResourceNotFoundException("Journal id " + id + " was deleted!");
+
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            User user = journal1.getUser();
+            if (user != null) {
+                if (user.getDepartments().contains(dep)) {
+                    check = true;
+                    break;
+                }
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
 
         journal1.setDeleted(true);
         journalRepository.save(journal1);

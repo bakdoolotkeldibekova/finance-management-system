@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface JournalService {
     ResponseEntity<Journal> getByIdForAdmin(Long id);
-    ResponseEntity<Journal> getByIdForUser(Long id);
+    ResponseEntity<Journal> getByIdForUser(Long id, String email);
     List<Journal> getAllForAdmin();
-    List<Journal> getAllForUser();
+    List<Journal> getAllForUser(String email);
     Page<Journal> getByPage(List<Journal> list, Pageable pageable);
     List<Journal> getAllByTable(String table);
     List<Journal> getAllByAction(String action);

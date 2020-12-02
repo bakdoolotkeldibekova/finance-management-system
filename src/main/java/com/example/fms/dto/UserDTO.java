@@ -13,5 +13,5 @@ import java.util.List;
 
 public class UserDTO {
     private String email;
-   // private List<Department> departmentList;
+    private List<Long> departmentList;
 }

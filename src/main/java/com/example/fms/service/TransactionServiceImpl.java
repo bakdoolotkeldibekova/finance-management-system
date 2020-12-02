@@ -5,6 +5,7 @@ import com.example.fms.dto.TransactionIncomeDTO;
 import com.example.fms.dto.TransactionRemittanceDTO;
 import com.example.fms.entity.*;
 
+import com.example.fms.exception.AccessDenied;
 import com.example.fms.exception.NotEnoughBalanceException;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.*;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,8 +43,17 @@ public class TransactionServiceImpl implements TransactionService{
     private JournalRepository journalRepository;
 
     @Override
-    public List<Transaction> getAllForUser() {
-        return transactionRepository.findAllByDeletedOrderByDateCreatedDesc(false);
+    public List<Transaction> getAllForUser(String email) {
+        List<Department> departments = userRepository.findByEmail(email).getDepartments();
+        List<Transaction> transactions = new ArrayList<>();
+        for (Transaction transaction : transactionRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
+            for (Department department : departments) {
+                if (transaction.getUser().getDepartments().contains(department)) {
+                    transactions.add(transaction);
+                }
+            }
+        }
+        return transactions;
     }
 
     @Override
@@ -151,11 +162,23 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public ResponseEntity<Transaction> getByIdForUser(Long id) {
+    public ResponseEntity<Transaction> getByIdForUser(Long id, String userEmail) {
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
         if (transaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " not found!");
+
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            if (transaction.getUser().getDepartments().contains(dep)){
+                check = true;
+                break;
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
+
         return ResponseEntity.ok().body(transaction);
     }
 
@@ -224,6 +247,17 @@ public class TransactionServiceImpl implements TransactionService{
         if (!transaction.getAction().equals("INCOME"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT INCOME action!");
 
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            if (transaction.getUser().getDepartments().contains(dep)){
+                check = true;
+                break;
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
+
         if (transaction.getCategory().getId() != transactionIncomeDTO.getCategory()){
             Category category = categoryService.getCategoryById(transactionIncomeDTO.getCategory()).getBody();
             transaction.setCategory(category);
@@ -275,6 +309,17 @@ public class TransactionServiceImpl implements TransactionService{
         if (!transaction.getAction().equals("EXPENSE"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT EXPENSE action!");
 
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            if (transaction.getUser().getDepartments().contains(dep)){
+                check = true;
+                break;
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
+
         if (transaction.getCategory().getId() != transactionExpenseDTO.getCategory()){
             Category category = categoryService.getCategoryById(transactionExpenseDTO.getCategory()).getBody();
             transaction.setCategory(category);
@@ -325,6 +370,17 @@ public class TransactionServiceImpl implements TransactionService{
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
         if (!transaction.getAction().equals("REMITTANCE"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT REMITTANCE action!");
+
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            if (transaction.getUser().getDepartments().contains(dep)){
+                check = true;
+                break;
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
 
         Account oldFromAccount = accountService.getAccountById(transaction.getFromAccount().getId()).getBody();
         Account newFromAccount = accountService.getAccountById(transactionRemittanceDTO.getFromAccount()).getBody();
@@ -402,6 +458,17 @@ public class TransactionServiceImpl implements TransactionService{
         if (transaction.isDeleted())
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
 
+        boolean check = false;
+        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
+            if (transaction.getUser().getDepartments().contains(dep)){
+                check = true;
+                break;
+            }
+        }
+
+        if (!check)
+            throw new AccessDenied("Access denied!");
+
         if (transaction.getAction().equals("INCOME") || transaction.getAction().equals("REMITTANCE")){
             Account toAccount = accountRepository.findById(transaction.getToAccount().getId())
                     .orElseThrow(()-> new ResourceNotFoundException("Account id " + transaction.getToAccount().getId() + " not found!"));
@@ -430,6 +497,7 @@ public class TransactionServiceImpl implements TransactionService{
 
         return new ResponseMessage(HttpStatus.OK.value(), "Transaction successfully deleted");
     }
+
     @Override
     public Page<Transaction> getByPage(List<Transaction> list, Pageable pageable) {
         int start = (int) pageable.getOffset();

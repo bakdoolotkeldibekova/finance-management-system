@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.List;
@@ -36,11 +37,11 @@ public class User extends BaseEntity{
     @Column(name = "surname")
     private String surname;
 
-//    @ManyToMany(cascade = CascadeType.ALL)
-//    @JoinTable(name = "user_department", joinColumns={
-//            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
-//            @JoinColumn(name = "department_id") })
-//    private List<Department> departments;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_department", joinColumns={
+            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
+            @JoinColumn(name = "department_id") })
+    private List<Department> departments;
 
 //    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 //    @JoinTable(name = "user_role", joinColumns={

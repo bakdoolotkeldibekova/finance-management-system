@@ -63,6 +63,12 @@ public class UserController {
         return userService.changePassword(principal.getName(), newPassword);
     }
 
+    @PutMapping("/departmentList")
+    public ResponseEntity<User> setDepartmentLIst(@RequestParam String userEmail,
+                                                  @RequestParam List<Long> departmentIdList, Principal principal){
+        return userService.setDepartmentList(departmentIdList, userEmail, principal.getName());
+    }
+
     @GetMapping("/email/{email}")
     public ResponseEntity<User> getByEmail(@PathVariable String email){ //email нужно написать точно и правильно
         return userService.getByEmail(email);
@@ -90,6 +96,7 @@ public class UserController {
                                     @RequestParam(required = false) String name,
                                     @RequestParam(required = false) Boolean isActive,
                                     @RequestParam(required = false) String surname,
+                                    @RequestParam(required = false) List<Long> departmentIdList,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore,
                                     @RequestParam(required = false) String position){
@@ -108,6 +115,8 @@ public class UserController {
             fooSet.retainAll(userService.getAllByDateCreatedBefore(dateBefore));
         if (position != null)
             fooSet.retainAll(userService.getAllByPosition(position));
+        if (departmentIdList != null)
+            fooSet.retainAll(userService.getAllByDepartments(departmentIdList));
 
         List<User> userList = new ArrayList<>(fooSet);
         return userService.getByPage(userList, pageable);

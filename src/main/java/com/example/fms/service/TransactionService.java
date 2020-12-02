@@ -16,18 +16,14 @@ import java.util.List;
 public interface TransactionService {
 
     List<Transaction> getAllForAdmin();
-    List<Transaction> getAllForUser();
+    List<Transaction> getAllForUser(String email);
     Page<Transaction> getByPage(List<Transaction> list, Pageable pageable);
 
- //   ResponseEntity<Transaction> addTransaction(Object object, String userEmail);
-
     ResponseEntity<Transaction> addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
-
     ResponseEntity<Transaction> addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail);
-
     ResponseEntity<Transaction> addRemittance(TransactionRemittanceDTO transactionRemittanceDTO, String userEmail);
 
-    ResponseEntity<Transaction> getByIdForUser (Long id);
+    ResponseEntity<Transaction> getByIdForUser (Long id, String userEmail);
     ResponseEntity<Transaction> getByIdForAdmin (Long id);
 
     List<Transaction> getAllByAction(String action);

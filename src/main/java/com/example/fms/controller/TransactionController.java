@@ -12,11 +12,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -43,7 +40,7 @@ public class TransactionController {
         String email = principal.getName();
         if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             return transactionService.getByIdForAdmin(id);
-        else return transactionService.getByIdForUser(id);
+        else return transactionService.getByIdForUser(id, principal.getName());
     }
 
     @ApiImplicitParams({
@@ -70,7 +67,7 @@ public class TransactionController {
         if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
             fooSet = new LinkedHashSet<>(transactionService.getAllForAdmin());
         else
-            fooSet = new LinkedHashSet<>(transactionService.getAllForUser());
+            fooSet = new LinkedHashSet<>(transactionService.getAllForUser(email));
 
         if (action != null)
             fooSet.retainAll(transactionService.getAllByAction(action));
@@ -116,45 +113,21 @@ public class TransactionController {
 
     @PutMapping("/updateIncome/{id}")
     public ResponseEntity<Transaction> updateIncome (@RequestBody TransactionIncomeDTO newTransaction, @PathVariable Long id, Principal principal) {
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
-            Transaction transaction = transactionService.getByIdForUser(id).getBody();
-            if (transaction == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
-        }
         return transactionService.updateIncomeById(newTransaction, id, principal.getName());
     }
 
     @PutMapping("/updateExpense/{id}")
     public ResponseEntity<Transaction> updateExpense (@RequestBody TransactionExpenseDTO newTransaction, @PathVariable Long id, Principal principal) {
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
-            Transaction transaction = transactionService.getByIdForUser(id).getBody();
-            if (transaction == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
-        }
         return transactionService.updateExpenseById(newTransaction, id, principal.getName());
     }
 
     @PutMapping("/updateRemittance/{id}")
     public ResponseEntity<Transaction> updateRemittance (@RequestBody TransactionRemittanceDTO newTransaction, @PathVariable Long id, Principal principal) {
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
-            Transaction transaction = transactionService.getByIdForUser(id).getBody();
-            if (transaction == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
-        }
         return transactionService.updateRemittanceById(newTransaction, id, principal.getName());
     }
 
     @DeleteMapping("/{id}")
     public ResponseMessage deleteTransaction (@PathVariable Long id, Principal principal) {
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_USER")) {
-            Transaction transaction = transactionService.getByIdForUser(id).getBody();
-            if (transaction == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction id " + id + " not found!");
-        }
         return transactionService.deleteTransactionById(id, principal.getName());
     }
 

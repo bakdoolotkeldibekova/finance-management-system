@@ -7,10 +7,7 @@ import com.example.fms.dto.UserDTO;
 import com.example.fms.dto.UserRegistrDTO;
 import com.example.fms.entity.*;
 import com.example.fms.exception.ResourceNotFoundException;
-import com.example.fms.repository.ImageRepository;
-import com.example.fms.repository.JournalRepository;
-import com.example.fms.repository.RoleRepository;
-import com.example.fms.repository.UserRepository;
+import com.example.fms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -43,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
     @Autowired
     private ImageRepository imageRepository;
+    @Autowired
+    private DepartmentService departmentService;
 
     @Override
     public ResponseEntity<User> save(UserRegistrDTO userRegistrDTO) {
@@ -56,8 +55,8 @@ public class UserServiceImpl implements UserService {
 
         Journal journal = new Journal();
         journal.setTable("USER: " + user.getEmail());
-        journal.setAction("create");
-        journal.setUser(null);
+        journal.setAction("registration");
+        journal.setUser(user);
         journal.setDeleted(false);
         journalRepository.save(journal);
 
@@ -66,9 +65,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseMessage createUser(UserDTO userDTO) {
+        List<Department> departmentList = new ArrayList<>();
+        for (Long depId : userDTO.getDepartmentList()){
+            Department department = departmentService.getDepartmentById(depId).getBody();
+            departmentList.add(department);
+        }
         User user = new User();
         user.setEmail(userDTO.getEmail());
-      //  user.setDepartments(userDTO.getDepartmentList());
+        user.setDepartments(departmentList);
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
         user.setRole(roleRepository.findById(2L).orElse(roleRepository.save(new Role("ROLE_USER"))));
@@ -95,7 +99,6 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
         user.setRole(roleRepository.findById(1L).orElse(roleRepository.save(new Role("ROLE_ADMIN"))));
         user.setDeleted(false);
-
         userRepository.save(user);
     }
 
@@ -219,6 +222,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllByDepartments(List<Long> departmentIdList) {
+        List<Department> departmentList = new ArrayList<>();
+        for (Long depId : departmentIdList){
+            Department department = departmentService.getDepartmentById(depId).getBody();
+            departmentList.add(department);
+        }
+
+        List<User> userList = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            List<Department> depList = user.getDepartments();
+            if (depList.containsAll(departmentList))
+                userList.add(user);
+        }
+        return userList;
+    }
+
+    @Override
     public ResponseEntity<User> getByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null)
@@ -324,6 +344,29 @@ public class UserServiceImpl implements UserService {
         journalRepository.save(journal);
 
         return new ResponseMessage(HttpStatus.OK.value(), "image successfully deleted");
+    }
+
+    @Override
+    public ResponseEntity<User> setDepartmentList(List<Long> departmentIdList, String userEmail, String admin) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null)
+            throw new ResourceNotFoundException(userEmail + " user with this email not found!");
+
+        List<Department> departmentList = new ArrayList<>();
+        for (Long depId : departmentIdList){
+            Department department = departmentService.getDepartmentById(depId).getBody();
+            departmentList.add(department);
+        }
+        user.setDepartments(departmentList);
+
+        Journal journal = new Journal();
+        journal.setTable("USER: " + user.getEmail());
+        journal.setAction("set department");
+        journal.setUser(userRepository.findByEmail(admin));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+
+        return ResponseEntity.ok().body(userRepository.save(user));
     }
 
     @Override
