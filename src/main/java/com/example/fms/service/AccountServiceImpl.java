@@ -22,6 +22,7 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,7 +50,12 @@ public class AccountServiceImpl implements AccountService {
     public Page<Account> getByPage(List<Account> list, Pageable pageable) {
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), list.size());
-        return new PageImpl<Account>(list.subList(start, end), pageable, list.size());
+
+        List<Account> output = new ArrayList<>();
+        if (start <= end) {
+            output = list.subList(start, end);
+        }
+        return new PageImpl<>(output, pageable, list.size());
     }
 
     @Override

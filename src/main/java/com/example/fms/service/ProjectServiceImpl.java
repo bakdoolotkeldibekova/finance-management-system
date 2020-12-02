@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,7 +47,12 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<Project> getByPage(List<Project> list, Pageable pageable) {
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), list.size());
-        return new PageImpl<Project>(list.subList(start, end), pageable, list.size());
+
+        List<Project> output = new ArrayList<>();
+        if (start <= end) {
+            output = list.subList(start, end);
+        }
+        return new PageImpl<>(output, pageable, list.size());
 
     }
 

@@ -182,7 +182,12 @@ public class UserServiceImpl implements UserService {
     public Page<User> getByPage(List<User> list, Pageable pageable) {
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), list.size());
-        return new PageImpl<User>(list.subList(start, end), pageable, list.size());
+
+        List<User> output = new ArrayList<>();
+        if (start <= end) {
+            output = list.subList(start, end);
+        }
+        return new PageImpl<>(output, pageable, list.size());
     }
 
     @Override

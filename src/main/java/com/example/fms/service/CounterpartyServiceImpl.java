@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,8 +47,12 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     public Page<Counterparty> getByPage(List<Counterparty> list, Pageable pageable) {
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), list.size());
-        return new PageImpl<Counterparty>(list.subList(start, end), pageable, list.size());
 
+        List<Counterparty> output = new ArrayList<>();
+        if (start <= end) {
+            output = list.subList(start, end);
+        }
+        return new PageImpl<>(output, pageable, list.size());
     }
 
     @Override
