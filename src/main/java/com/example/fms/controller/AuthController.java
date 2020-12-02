@@ -5,6 +5,9 @@ import com.example.fms.dto.UserAuthDTO;
 import com.example.fms.dto.UserRegistrDTO;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.entity.User;
+import com.example.fms.exception.AccessDenied;
+import com.example.fms.exception.ResourceNotFoundException;
+import com.example.fms.exception.ToMaintainDataIntegrityException;
 import com.example.fms.service.UserService;
 import com.example.fms.util.JwtUtil;
 import io.swagger.annotations.ApiParam;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -54,12 +58,14 @@ public class AuthController {
     }
 
     @PostMapping("/auth")
-    public TokenDTO getToken(@RequestBody UserAuthDTO userAuthDTO) throws Exception {
+    public TokenDTO getToken(@RequestBody UserAuthDTO userAuthDTO){
+        if (userAuthDTO.getEmail() == null || userAuthDTO.getPassword() == null)
+            throw new ToMaintainDataIntegrityException("email or password is null");
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userAuthDTO.getEmail(), userAuthDTO.getPassword()));
         } catch (Exception e){
-            throw new Exception("Auth failed");
+            throw new AccessDenied("Auth failed");
         }
         return new TokenDTO(jwtUtil.generateToken(userAuthDTO.getEmail()));
     }
