@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -99,6 +101,27 @@ public class TransactionController {
     @PostMapping("/addIncome")
     public ResponseEntity<Transaction> addIncome (@RequestBody TransactionIncomeDTO transactionIncomeDTO, Principal principal){
         return transactionService.addIncome(transactionIncomeDTO, principal.getName());
+    }
+
+    @GetMapping("/income")
+    public ResponseEntity<BigDecimal> income (@ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
+                                              @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore, Principal principal) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return transactionService.income(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter), principal.getName());
+    }
+
+    @GetMapping("/expense")
+    public ResponseEntity<BigDecimal> expense (@ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
+                                              @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore, Principal principal) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return transactionService.expense(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter), principal.getName());
+    }
+
+    @GetMapping("/profit")
+    public ResponseEntity<BigDecimal> profit (@ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
+                                              @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore, Principal principal) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return transactionService.profit(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter), principal.getName());
     }
 
     @PostMapping("/addExpense")

@@ -17,5 +17,4 @@ public class UserAdminDTO {
     private String surname;
     private String password;
     private String position;
-    //private List<Department> departmentList;
 }

@@ -76,6 +76,12 @@ public class DepartmentServiceImpl implements DepartmentService{
         Department department = new Department(departmentDTO.getName());
         departmentRepository.save(department);
 
+        User user = userRepository.findByRoleName("ROLE_ADMIN");
+        List<Department> departmentList = user.getDepartments();
+        departmentList.add(department);
+        user.setDepartments(departmentList);
+        userRepository.save(user);
+
         Journal journal = new Journal();
         journal.setTable("DEPARTMENT: " + departmentDTO.getName());
         journal.setAction("create");

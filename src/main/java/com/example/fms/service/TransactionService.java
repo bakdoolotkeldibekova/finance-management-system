@@ -48,4 +48,7 @@ public interface TransactionService {
     ResponseEntity<Transaction> updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail);
 
     ResponseMessage deleteTransactionById (Long id, String userEmail);
+    ResponseEntity<BigDecimal> income(LocalDateTime after, LocalDateTime before, String email);
+    ResponseEntity<BigDecimal> expense(LocalDateTime after, LocalDateTime before, String email);
+    ResponseEntity<BigDecimal> profit(LocalDateTime after, LocalDateTime before, String email);
 }

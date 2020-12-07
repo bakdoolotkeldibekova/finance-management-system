@@ -75,7 +75,10 @@ public class UserServiceImpl implements UserService {
         user.setDepartments(departmentList);
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
-        user.setRole(roleRepository.findById(2L).orElse(roleRepository.save(new Role("ROLE_USER"))));
+        Role role = roleRepository.findByName("ROLE_USER");
+        if (role == null)
+            role = roleRepository.save(new Role("ROLE_USER"));
+        user.setRole(role);
         user.setDeleted(false);
 
         String message = "Hello, ! \n" +

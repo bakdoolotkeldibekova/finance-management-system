@@ -4,7 +4,6 @@ import com.example.fms.entity.*;
 import com.example.fms.exception.AccessDenied;
 import com.example.fms.exception.ResourceNotFoundException;
 import com.example.fms.repository.JournalRepository;
-import com.example.fms.repository.TransactionRepository;
 import com.example.fms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,6 +24,8 @@ public class JournalServiceImpl implements JournalService {
     private JournalRepository journalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private JournalService journalService;
 
     @Override
     public ResponseEntity<Journal> getByIdForAdmin(Long id){
@@ -38,37 +39,27 @@ public class JournalServiceImpl implements JournalService {
         Journal journal = journalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
         if (journal.isDeleted())
-            throw new ResourceNotFoundException("Journal id " + id + " not found!");
+            throw new ResourceNotFoundException("Journal id " + id + " was deleted!");
 
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(email).getDepartments()){
-            User user = journal.getUser();
-            if (user != null) {
-                if (user.getDepartments().contains(dep)) {
-                    check = true;
-                    break;
-                }
-            }
+        if (journal.getUser() != null) {
+            List<Department> departmentList = userRepository.findByEmail(email).getDepartments();
+            departmentList.retainAll(journal.getUser().getDepartments());
+
+            if (!departmentList.isEmpty())
+                return ResponseEntity.ok().body(journal);
         }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
-
-        return ResponseEntity.ok().body(journal);
+        throw new AccessDenied("You do not have access to this journal");
     }
 
     @Override
     public List<Journal> getAllForUser(String email) {
-        List<Department> departments = userRepository.findByEmail(email).getDepartments();
         List<Journal> journals = new ArrayList<>();
         for (Journal journal : journalRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
-            for (Department department : departments) {
-                   User user = journal.getUser();
-                   if (user != null){
-                       if (user.getDepartments().contains(department)) {
-                           journals.add(journal);
-                       }
-                   }
+            List<Department> departments = userRepository.findByEmail(email).getDepartments();
+            if (journal.getUser() != null){
+                departments.retainAll(journal.getUser().getDepartments());
+                if (!departments.isEmpty())
+                    journals.add(journal);
             }
         }
         return journals;
@@ -122,34 +113,21 @@ public class JournalServiceImpl implements JournalService {
 
     @Override
     public ResponseMessage deleteById(Long id, String userEmail) {
-        Journal journal1 = journalRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Journal id " + id + " not found!"));
-        if (journal1.isDeleted())
-            throw new ResourceNotFoundException("Journal id " + id + " was deleted!");
+        Journal oldJournal;
+        if (userRepository.findByEmail(userEmail).getRole().equals("ROLE_ADMIN"))
+            oldJournal = journalService.getByIdForAdmin(id).getBody();
+        else
+            oldJournal = journalService.getByIdForUser(id, userEmail).getBody();
 
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            User user = journal1.getUser();
-            if (user != null) {
-                if (user.getDepartments().contains(dep)) {
-                    check = true;
-                    break;
-                }
-            }
-        }
+        oldJournal.setDeleted(true);
+        journalRepository.save(oldJournal);
 
-        if (!check)
-            throw new AccessDenied("Access denied!");
-
-        journal1.setDeleted(true);
-        journalRepository.save(journal1);
-
-            Journal journal = new Journal();
-            journal.setTable("JOURNAL");
-            journal.setAction("delete");
-            journal.setUser(userRepository.findByEmail(userEmail));
-            journal.setDeleted(false);
-            journalRepository.save(journal);
-       return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
+        Journal journal = new Journal();
+        journal.setTable("JOURNAL");
+        journal.setAction("delete");
+        journal.setUser(userRepository.findByEmail(userEmail));
+        journal.setDeleted(false);
+        journalRepository.save(journal);
+        return new ResponseMessage(HttpStatus.OK.value(), "Journal id " + id +" deleted successfully");
     }
 }

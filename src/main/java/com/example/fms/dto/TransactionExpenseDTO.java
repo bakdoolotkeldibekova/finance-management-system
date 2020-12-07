@@ -16,4 +16,5 @@ public class TransactionExpenseDTO {
     private Long counterparty;
     private Long project;
     private String description;
+    private Long department;
 }

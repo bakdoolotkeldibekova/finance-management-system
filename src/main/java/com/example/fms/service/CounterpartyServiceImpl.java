@@ -25,7 +25,7 @@ import java.util.List;
 @Service
 public class CounterpartyServiceImpl implements CounterpartyService{
     @Autowired
-    CounterpartyRepository counterpartyRepository;
+    private CounterpartyRepository counterpartyRepository;
     @Autowired
     private JournalRepository journalRepository;
     @Autowired

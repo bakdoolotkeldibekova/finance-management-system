@@ -1,6 +1,5 @@
 package com.example.fms.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -54,7 +52,8 @@ public class Transaction extends BaseEntity{
     @Column(name = "description")
     private String description;
 
-//    @Column(name = "is_deleted", nullable = false)
-//    private boolean deleted;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "departament_id")
+    private Department department;
 
 }

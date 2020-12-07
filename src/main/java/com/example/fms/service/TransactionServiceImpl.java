@@ -12,7 +12,6 @@ import com.example.fms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class TransactionServiceImpl implements TransactionService{
@@ -42,17 +42,20 @@ public class TransactionServiceImpl implements TransactionService{
     private ProjectService projectService;
     @Autowired
     private JournalRepository journalRepository;
+    @Autowired
+    private DepartmentService departmentService;
+    @Autowired
+    private TransactionService transactionService;
 
     @Override
     public List<Transaction> getAllForUser(String email) {
         List<Department> departments = userRepository.findByEmail(email).getDepartments();
         List<Transaction> transactions = new ArrayList<>();
         for (Transaction transaction : transactionRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
-            for (Department department : departments) {
-                if (transaction.getUser().getDepartments().contains(department)) {
-                    transactions.add(transaction);
-                }
-            }
+            if (transaction.getAction().equals("REMITTANCE"))
+                transactions.add(transaction);
+            else if (departments.contains(transaction.getDepartment()))
+                transactions.add(transaction);
         }
         return transactions;
     }
@@ -63,9 +66,41 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
+    public ResponseEntity<BigDecimal> income(LocalDateTime after, LocalDateTime before, String email) {
+        BigDecimal income = BigDecimal.ZERO;
+        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "INCOME");
+        for (Transaction transaction : transactions) {
+            income = income.add(transaction.getBalance());
+        }
+        return ResponseEntity.ok().body(income);
+    }
+
+    @Override
+    public ResponseEntity<BigDecimal> expense(LocalDateTime after, LocalDateTime before, String email) {
+        BigDecimal expense = BigDecimal.ZERO;
+        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "EXPENSE");
+        for (Transaction transaction : transactions) {
+            expense = expense.add(transaction.getBalance());
+        }
+        return ResponseEntity.ok().body(expense);
+    }
+
+    @Override
+    public ResponseEntity<BigDecimal> profit(LocalDateTime after, LocalDateTime before, String email) {
+        BigDecimal profit = Objects.requireNonNull(this.income(after, before, email).getBody()).subtract(this.expense(after, before, email).getBody());
+//        BigDecimal profit = income.subtract(expense);
+        return ResponseEntity.ok().body(profit);
+    }
+
+    @Override
     public ResponseEntity<Transaction> addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail) {
         Transaction transaction = new Transaction();
         transaction.setAction("INCOME");
+
+        Department department = departmentService.getDepartmentById(transactionIncomeDTO.getDepartment()).getBody();
+        if (!userRepository.findByEmail(userEmail).getDepartments().contains(department))
+            throw new AccessDenied("You do not have access to the next departmentId: " + department.getId());
+        transaction.setDepartment(department);
 
         Category category = categoryService.getCategoryById(transactionIncomeDTO.getCategory()).getBody();
         transaction.setCategory(category);
@@ -95,6 +130,11 @@ public class TransactionServiceImpl implements TransactionService{
     public ResponseEntity<Transaction> addExpense(TransactionExpenseDTO transactionExpenseDTO, String userEmail) {
         Transaction transaction = new Transaction();
         transaction.setAction("EXPENSE");
+
+        Department department = departmentService.getDepartmentById(transactionExpenseDTO.getDepartment()).getBody();
+        if (!userRepository.findByEmail(userEmail).getDepartments().contains(department))
+            throw new AccessDenied("You do not have access to the next departmentId: " + department.getId());
+        transaction.setDepartment(department);
 
         Category category = categoryService.getCategoryById(transactionExpenseDTO.getCategory()).getBody();
         transaction.setCategory(category);
@@ -167,20 +207,13 @@ public class TransactionServiceImpl implements TransactionService{
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction id " + id + " not found!"));
         if (transaction.isDeleted())
-            throw new ResourceNotFoundException("Transaction id " + id + " not found!");
+            throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
 
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            if (transaction.getUser().getDepartments().contains(dep)){
-                check = true;
-                break;
-            }
-        }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
-
-        return ResponseEntity.ok().body(transaction);
+        if (transaction.getAction().equals("REMITTANCE"))
+            return ResponseEntity.ok().body(transaction);
+        if (userRepository.findByEmail(userEmail).getDepartments().contains(transaction.getDepartment()))
+            return ResponseEntity.ok().body(transaction);
+        throw new AccessDenied("You do not have access to the next departmentId: " + transaction.getDepartment().getId());
     }
 
     @Override
@@ -248,16 +281,13 @@ public class TransactionServiceImpl implements TransactionService{
         if (!transaction.getAction().equals("INCOME"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT INCOME action!");
 
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            if (transaction.getUser().getDepartments().contains(dep)){
-                check = true;
-                break;
-            }
+        List<Department> departmentList = userRepository.findByEmail(userEmail).getDepartments();
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") || departmentList.contains(transaction.getDepartment()))
+            throw new AccessDenied("You do not have access to the next departmentId: " + transaction.getDepartment().getId());
+        if (transaction.getDepartment().getId() != transactionIncomeDTO.getDepartment()){
+            Department department = departmentService.getDepartmentById(transactionIncomeDTO.getDepartment()).getBody();
+            transaction.setDepartment(department);
         }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
 
         if (transaction.getCategory().getId() != transactionIncomeDTO.getCategory()){
             Category category = categoryService.getCategoryById(transactionIncomeDTO.getCategory()).getBody();
@@ -310,16 +340,13 @@ public class TransactionServiceImpl implements TransactionService{
         if (!transaction.getAction().equals("EXPENSE"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT EXPENSE action!");
 
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            if (transaction.getUser().getDepartments().contains(dep)){
-                check = true;
-                break;
-            }
+        List<Department> departmentList = userRepository.findByEmail(userEmail).getDepartments();
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") || departmentList.contains(transaction.getDepartment()))
+            throw new AccessDenied("You do not have access to the next departmentId: " + transaction.getDepartment().getId());
+        if (transaction.getDepartment().getId() != transactionExpenseDTO.getDepartment()){
+            Department department = departmentService.getDepartmentById(transactionExpenseDTO.getDepartment()).getBody();
+            transaction.setDepartment(department);
         }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
 
         if (transaction.getCategory().getId() != transactionExpenseDTO.getCategory()){
             Category category = categoryService.getCategoryById(transactionExpenseDTO.getCategory()).getBody();
@@ -371,17 +398,6 @@ public class TransactionServiceImpl implements TransactionService{
             throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
         if (!transaction.getAction().equals("REMITTANCE"))
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT REMITTANCE action!");
-
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            if (transaction.getUser().getDepartments().contains(dep)){
-                check = true;
-                break;
-            }
-        }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
 
         Account oldFromAccount = accountService.getAccountById(transaction.getFromAccount().getId()).getBody();
         Account newFromAccount = accountService.getAccountById(transactionRemittanceDTO.getFromAccount()).getBody();
@@ -454,21 +470,10 @@ public class TransactionServiceImpl implements TransactionService{
 
     @Override
     public ResponseMessage deleteTransactionById(Long id, String userEmail) {
-        Transaction transaction = transactionRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Transaction id " + id + " not found!"));
-        if (transaction.isDeleted())
-            throw new ResourceNotFoundException("Transaction id " + id + " was deleted!");
-
-        boolean check = false;
-        for (Department dep : userRepository.findByEmail(userEmail).getDepartments()){
-            if (transaction.getUser().getDepartments().contains(dep)){
-                check = true;
-                break;
-            }
-        }
-
-        if (!check)
-            throw new AccessDenied("Access denied!");
+        Transaction transaction;
+        if (userRepository.findByEmail(userEmail).getRole().getName().equals("ROLE_ADMIN"))
+            transaction = transactionService.getByIdForAdmin(id).getBody();
+        else transaction = transactionService.getByIdForUser(id, userEmail).getBody();
 
         if (transaction.getAction().equals("INCOME") || transaction.getAction().equals("REMITTANCE")){
             Account toAccount = accountRepository.findById(transaction.getToAccount().getId())

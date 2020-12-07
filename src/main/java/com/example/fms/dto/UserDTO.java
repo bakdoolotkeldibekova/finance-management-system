@@ -1,6 +1,5 @@
 package com.example.fms.dto;
 
-import com.example.fms.entity.Department;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

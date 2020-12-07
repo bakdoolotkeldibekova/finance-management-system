@@ -27,8 +27,7 @@
         ResponseEntity<User> setImage(MultipartFile multipartFile, String userEmail) throws IOException;
         ResponseMessage deleteImage(String email);
         ResponseEntity<User> setDepartmentList(List<Long> departmentIdList, String userEmail, String admin);
-
-        List<User> getAll();
+            List<User> getAll();
         Page<User> getByPage(List<User> list, Pageable pageable);
         List<User> getAllByPosition(String position);
         List<User> getAllByActive(boolean isActive);

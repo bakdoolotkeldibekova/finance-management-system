@@ -105,7 +105,7 @@ class TransactionControllerTest {
 
     @Test
     void addIncome() throws Exception{
-        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "incomeTest");
+        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "incomeTest", 1L);
         String jsonRequest = mapper.writeValueAsString(income);
 
         MvcResult result = mvc
@@ -121,7 +121,7 @@ class TransactionControllerTest {
 
     @Test
     void addExpense() throws Exception{
-        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "expense Test");
+        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "expense Test", 1L);
         String jsonRequest = mapper.writeValueAsString(expense);
 
         MvcResult result = mvc
@@ -154,7 +154,7 @@ class TransactionControllerTest {
 
     @Test
     void updateIncome() throws Exception{
-        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update income Test");
+        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update income Test", 1L);
         String jsonRequest = mapper.writeValueAsString(income);
 
         MvcResult result = mvc
@@ -170,7 +170,7 @@ class TransactionControllerTest {
 
     @Test
     void updateIncome_returnsError() throws Exception{
-        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update income Test");
+        TransactionIncomeDTO income = new TransactionIncomeDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update income Test", 1L);
         String jsonRequest = mapper.writeValueAsString(income);
 
         MvcResult result = mvc
@@ -186,7 +186,7 @@ class TransactionControllerTest {
 
     @Test
     void updateExpense() throws Exception{
-        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update expense Test");
+        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update expense Test", 1L);
         String jsonRequest = mapper.writeValueAsString(expense);
 
         MvcResult result = mvc
@@ -202,7 +202,7 @@ class TransactionControllerTest {
 
     @Test
     void updateExpense_returnsError() throws Exception{
-        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update expense Test");
+        TransactionExpenseDTO expense = new TransactionExpenseDTO(1L, 1L, BigDecimal.valueOf(120), 1L, 1L, "update expense Test", 1L);
         String jsonRequest = mapper.writeValueAsString(expense);
 
         MvcResult result = mvc

@@ -37,17 +37,6 @@ public class User extends BaseEntity{
     @Column(name = "surname")
     private String surname;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "user_department", joinColumns={
-            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "department_id") })
-    private List<Department> departments;
-
-//    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    @JoinTable(name = "user_role", joinColumns={
-//            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
-//            @JoinColumn(name = "role_id") })
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
@@ -64,6 +53,12 @@ public class User extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "image_id")
     private Image image;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_department", joinColumns={
+            @JoinColumn(name = "user_id") }, inverseJoinColumns = {
+            @JoinColumn(name = "department_id") })
+    private List<Department> departments;
 
     @JsonIgnore
     @Column(name = "is_deleted", nullable = false)

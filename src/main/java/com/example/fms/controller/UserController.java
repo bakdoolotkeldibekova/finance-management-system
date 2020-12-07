@@ -64,9 +64,9 @@ public class UserController {
     }
 
     @PutMapping("/departmentList")
-    public ResponseEntity<User> setDepartmentLIst(@RequestParam String userEmail,
-                                                  @RequestParam List<Long> departmentIdList, Principal principal){
-        return userService.setDepartmentList(departmentIdList, userEmail, principal.getName());
+    public ResponseEntity<User> setDepartment(@RequestParam String userEmail,
+                                                  @RequestParam List<Long> departmentLIstId, Principal principal){
+        return userService.setDepartmentList(departmentLIstId, userEmail, principal.getName());
     }
 
     @GetMapping("/email/{email}")
@@ -96,7 +96,7 @@ public class UserController {
                                     @RequestParam(required = false) String name,
                                     @RequestParam(required = false) Boolean isActive,
                                     @RequestParam(required = false) String surname,
-                                    @RequestParam(required = false) List<Long> departmentIdList,
+                                    @RequestParam(required = false) List<Long> departmentListId,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                     @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore,
                                     @RequestParam(required = false) String position){
@@ -115,8 +115,8 @@ public class UserController {
             fooSet.retainAll(userService.getAllByDateCreatedBefore(dateBefore));
         if (position != null)
             fooSet.retainAll(userService.getAllByPosition(position));
-        if (departmentIdList != null)
-            fooSet.retainAll(userService.getAllByDepartments(departmentIdList));
+        if (departmentListId != null)
+            fooSet.retainAll(userService.getAllByDepartments(departmentListId));
 
         List<User> userList = new ArrayList<>(fooSet);
         return userService.getByPage(userList, pageable);
