@@ -48,14 +48,17 @@ public class JournalServiceImpl implements JournalService {
             if (!departmentList.isEmpty())
                 return ResponseEntity.ok().body(journal);
         }
-        throw new AccessDenied("You do not have access to this journal");
+        throw new AccessDenied("You do not have access to this journal record");
     }
 
     @Override
-    public List<Journal> getAllForUser(String email) {
+    public List<Journal> getAll(boolean isDeleted, String email) {
+        User user = userRepository.findByEmail(email);
+        if (isDeleted && !user.getRole().getName().equals("ROLE_ADMIN"))
+            throw new AccessDenied("Deleted journal records are not available for you");
         List<Journal> journals = new ArrayList<>();
-        for (Journal journal : journalRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
-            List<Department> departments = userRepository.findByEmail(email).getDepartments();
+        for (Journal journal : journalRepository.findAllByDeletedOrderByDateCreatedDesc(isDeleted)) {
+            List<Department> departments = user.getDepartments();
             if (journal.getUser() != null){
                 departments.retainAll(journal.getUser().getDepartments());
                 if (!departments.isEmpty())
@@ -75,11 +78,6 @@ public class JournalServiceImpl implements JournalService {
             output = list.subList(start, end);
         }
         return new PageImpl<>(output, pageable, list.size());
-    }
-
-    @Override
-    public List<Journal> getAllForAdmin() {
-        return journalRepository.findAllByOrderByDateCreatedDesc();
     }
 
     @Override

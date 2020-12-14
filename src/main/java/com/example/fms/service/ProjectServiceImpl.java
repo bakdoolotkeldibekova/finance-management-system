@@ -34,6 +34,11 @@ public class ProjectServiceImpl implements ProjectService {
     private EntityManager entityManager;
 
     @Override
+    public List<Project> getAll() {
+        return projectRepository.findAll();
+    }
+
+    @Override
     public List<Project> getAll(boolean isDeleted) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedProjectFilter");

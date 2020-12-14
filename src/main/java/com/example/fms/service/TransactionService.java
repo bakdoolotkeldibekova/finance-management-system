@@ -12,11 +12,11 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface TransactionService {
 
-    List<Transaction> getAllForAdmin();
-    List<Transaction> getAllForUser(String email);
+    List<Transaction> getAll(boolean isDeleted, String email);
     Page<Transaction> getByPage(List<Transaction> list, Pageable pageable);
 
     ResponseEntity<Transaction> addIncome(TransactionIncomeDTO transactionIncomeDTO, String userEmail);
@@ -48,7 +48,12 @@ public interface TransactionService {
     ResponseEntity<Transaction> updateRemittanceById(TransactionRemittanceDTO newTransaction, Long id, String userEmail);
 
     ResponseMessage deleteTransactionById (Long id, String userEmail);
-    ResponseEntity<BigDecimal> income(LocalDateTime after, LocalDateTime before, String email);
-    ResponseEntity<BigDecimal> expense(LocalDateTime after, LocalDateTime before, String email);
+    ResponseEntity<Map<String,BigDecimal>> incomeCategory(LocalDateTime after, LocalDateTime before);
+    ResponseEntity<Map<String,BigDecimal>> incomeProject(LocalDateTime after, LocalDateTime before);
+    ResponseEntity<Map<String,BigDecimal>> incomeCounterparty(LocalDateTime after, LocalDateTime before);
+
+    ResponseEntity<Map<String,BigDecimal>> expenseCategory(LocalDateTime after, LocalDateTime before);
+    ResponseEntity<Map<String,BigDecimal>> expenseProject(LocalDateTime after, LocalDateTime before);
+    ResponseEntity<Map<String,BigDecimal>> expenseCounterparty(LocalDateTime after, LocalDateTime before);
     ResponseEntity<BigDecimal> profit(LocalDateTime after, LocalDateTime before, String email);
 }

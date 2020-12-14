@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CategoryService {
+    List<Category> getAll();
     List<Category> getAll(boolean isDeleted);
     Page<Category> getByPage(List<Category> list, Pageable pageable);
     List<Category> getAllByNameContaining(String name);

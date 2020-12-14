@@ -4,7 +4,6 @@ import com.example.fms.entity.Journal;
 import com.example.fms.entity.ResponseMessage;
 import com.example.fms.repository.UserRepository;
 import com.example.fms.service.JournalService;
-import com.example.fms.service.UserService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
@@ -51,17 +50,13 @@ public class JournalController {
     })
     @GetMapping("/get")
     public Page<Journal> getAllByParam(Pageable pageable,
+                                       @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                        @RequestParam(required = false) String table,
                                        @RequestParam(required = false) String action,
                                        @RequestParam(required = false) Long userId,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                        @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal){
-        Set<Journal> fooSet;
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
-            fooSet = new LinkedHashSet<>(journalService.getAllForAdmin());
-        else
-            fooSet = new LinkedHashSet<>(journalService.getAllForUser(email));
+        Set<Journal> fooSet = new LinkedHashSet<>(journalService.getAll(isDeleted, principal.getName()));
 
         if (table != null)
             fooSet.retainAll(journalService.getAllByTable(table));

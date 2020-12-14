@@ -34,6 +34,11 @@ public class CounterpartyServiceImpl implements CounterpartyService{
     private EntityManager entityManager;
 
     @Override
+    public List<Counterparty> getAll() {
+        return counterpartyRepository.findAll();
+    }
+
+    @Override
     public List<Counterparty> getAll(boolean isDeleted) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedCounterpartyFilter");

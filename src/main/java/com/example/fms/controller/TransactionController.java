@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,10 +20,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @CrossOrigin
 @RestController
@@ -53,6 +51,7 @@ public class TransactionController {
     })
     @GetMapping("/get")
     public Page<Transaction> getAllByParam(Pageable pageable,
+                                           @RequestParam(value = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
                                            @RequestParam(required = false) String action,
                                            @RequestParam(required = false) Long fromAccountId,
                                            @RequestParam(required = false) Long categoryId,
@@ -64,12 +63,7 @@ public class TransactionController {
                                            @RequestParam(required = false) Long counterpartyId,
                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateAfter,
                                            @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam(required = false) String dateBefore, Principal principal) {
-        Set<Transaction> fooSet;
-        String email = principal.getName();
-        if (userRepository.findByEmail(email).getRole().getName().equals("ROLE_ADMIN"))
-            fooSet = new LinkedHashSet<>(transactionService.getAllForAdmin());
-        else
-            fooSet = new LinkedHashSet<>(transactionService.getAllForUser(email));
+        Set<Transaction> fooSet = new LinkedHashSet<>(transactionService.getAll(isDeleted, principal.getName()));
 
         if (action != null)
             fooSet.retainAll(transactionService.getAllByAction(action));
@@ -104,17 +98,35 @@ public class TransactionController {
     }
 
     @GetMapping("/income")
-    public ResponseEntity<BigDecimal> income (@ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
-                                              @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore, Principal principal) {
+    public ResponseEntity<Map<String,BigDecimal>> income (@RequestParam(required = false) boolean category,
+                                                           @RequestParam(required = false) boolean project,
+                                                           @RequestParam(required = false) boolean counterparty,
+                                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
+                                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return transactionService.income(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter), principal.getName());
+        if (category)
+            return transactionService.incomeCategory(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        if (project)
+            return transactionService.incomeProject(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        if (counterparty)
+            return transactionService.incomeCounterparty(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/expense")
-    public ResponseEntity<BigDecimal> expense (@ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
-                                              @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore, Principal principal) {
+    public ResponseEntity<Map<String,BigDecimal>> expense (@RequestParam(required = false) boolean category,
+                                                           @RequestParam(required = false) boolean project,
+                                                           @RequestParam(required = false) boolean counterparty,
+                                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateAfter,
+                                                           @ApiParam(value="yyyy-MM-dd HH:mm") @RequestParam String dateBefore) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return transactionService.expense(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter), principal.getName());
+        if (category)
+            return transactionService.expenseCategory(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        if (project)
+            return transactionService.expenseProject(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        if (counterparty)
+            return transactionService.expenseCounterparty(LocalDateTime.parse(dateAfter, formatter), LocalDateTime.parse(dateBefore, formatter));
+        return null;
     }
 
     @GetMapping("/profit")

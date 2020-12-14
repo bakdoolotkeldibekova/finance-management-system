@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findAllByOrderByDateCreatedDesc();
     List<Transaction> findAllByDeletedOrderByDateCreatedDesc(boolean isDeleted);
     List<Transaction> findAllByActionContainingIgnoringCase(String action);
     List<Transaction> findAllByDeletedAndActionContainingIgnoringCase(boolean isDeleted, String action);
+    List<Transaction> findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(boolean isDeleted, String action, LocalDateTime dateAfter, LocalDateTime dateBefore);
     List<Transaction> findAllByUserId(Long userId);
     List<Transaction> findAllByFromAccountId(Long accountId);
     List<Transaction> findAllByToAccountId(Long accountId);

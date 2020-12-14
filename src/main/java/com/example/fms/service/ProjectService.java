@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface ProjectService {
-
+    List<Project> getAll();
     List<Project> getAll(boolean isDeleted);
     Page<Project> getByPage(List<Project> list, Pageable pageable);
     List<Project> getAllByNameContaining(String name);

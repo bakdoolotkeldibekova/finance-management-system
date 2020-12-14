@@ -20,9 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class TransactionServiceImpl implements TransactionService{
@@ -48,10 +46,13 @@ public class TransactionServiceImpl implements TransactionService{
     private TransactionService transactionService;
 
     @Override
-    public List<Transaction> getAllForUser(String email) {
-        List<Department> departments = userRepository.findByEmail(email).getDepartments();
+    public List<Transaction> getAll(boolean isDeleted, String email) {
+        User user = userRepository.findByEmail(email);
+        if (isDeleted && !user.getRole().getName().equals("ROLE_ADMIN"))
+            throw new AccessDenied("Deleted transactions are not available for you");
+        List<Department> departments = user.getDepartments();
         List<Transaction> transactions = new ArrayList<>();
-        for (Transaction transaction : transactionRepository.findAllByDeletedOrderByDateCreatedDesc(false)) {
+        for (Transaction transaction : transactionRepository.findAllByDeletedOrderByDateCreatedDesc(isDeleted)) {
             if (transaction.getAction().equals("REMITTANCE"))
                 transactions.add(transaction);
             else if (departments.contains(transaction.getDepartment()))
@@ -60,35 +61,172 @@ public class TransactionServiceImpl implements TransactionService{
         return transactions;
     }
 
+//    @Override
+//    @Override
+//    public ResponseEntity<BigDecimal> income(LocalDateTime after, LocalDateTime before, String email) {
+//        BigDecimal income = BigDecimal.ZERO;
+//        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "INCOME");
+//        for (Transaction transaction : transactions) {
+//            income = income.add(transaction.getBalance());
+//        }
+//        return ResponseEntity.ok().body(income);
+//    }
+
     @Override
-    public List<Transaction> getAllForAdmin() {
-        return transactionRepository.findAllByOrderByDateCreatedDesc();
+    public ResponseEntity<Map<String,BigDecimal>> incomeCategory(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> categories = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Category category : categoryService.getAll()) {
+            categories.add(category.getName());
+            transactions.add(BigDecimal.ZERO);
+        }
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "INCOME", after, before)) {
+            int index = categories.indexOf(transaction.getCategory().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < categories.size(); i++) {
+            map.put(categories.get(i), transactions.get(i));
+        }
+        return ResponseEntity.ok().body(map);
     }
 
     @Override
-    public ResponseEntity<BigDecimal> income(LocalDateTime after, LocalDateTime before, String email) {
-        BigDecimal income = BigDecimal.ZERO;
-        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "INCOME");
-        for (Transaction transaction : transactions) {
-            income = income.add(transaction.getBalance());
+    public ResponseEntity<Map<String,BigDecimal>> incomeProject(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> projects = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Project project : projectService.getAll()) {
+            projects.add(project.getName());
+            transactions.add(BigDecimal.ZERO);
         }
-        return ResponseEntity.ok().body(income);
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "INCOME", after, before)) {
+            int index = projects.indexOf(transaction.getProject().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < transactions.size(); i++)
+            map.put(projects.get(i), transactions.get(i));
+        return ResponseEntity.ok().body(map);
     }
 
     @Override
-    public ResponseEntity<BigDecimal> expense(LocalDateTime after, LocalDateTime before, String email) {
-        BigDecimal expense = BigDecimal.ZERO;
-        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "EXPENSE");
-        for (Transaction transaction : transactions) {
-            expense = expense.add(transaction.getBalance());
+    public ResponseEntity<Map<String,BigDecimal>> incomeCounterparty(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> counterparties = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Counterparty counterparty : counterpartyService.getAll()) {
+            counterparties.add(counterparty.getName());
+            transactions.add(BigDecimal.ZERO);
         }
-        return ResponseEntity.ok().body(expense);
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "INCOME", after, before)) {
+            int index = counterparties.indexOf(transaction.getCounterparty().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < transactions.size(); i++)
+            map.put(counterparties.get(i), transactions.get(i));
+        return ResponseEntity.ok().body(map);
     }
+
+    @Override
+    public ResponseEntity<Map<String, BigDecimal>> expenseCategory(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> categories = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Category category : categoryService.getAll()) {
+            categories.add(category.getName());
+            transactions.add(BigDecimal.ZERO);
+        }
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "EXPENSE", after, before)) {
+            int index = categories.indexOf(transaction.getCategory().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < categories.size(); i++) {
+            map.put(categories.get(i), transactions.get(i));
+        }
+        return ResponseEntity.ok().body(map);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, BigDecimal>> expenseProject(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> projects = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Project project : projectService.getAll()) {
+            projects.add(project.getName());
+            transactions.add(BigDecimal.ZERO);
+        }
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "EXPENSE", after, before)) {
+            int index = projects.indexOf(transaction.getProject().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < transactions.size(); i++)
+            map.put(projects.get(i), transactions.get(i));
+        return ResponseEntity.ok().body(map);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, BigDecimal>> expenseCounterparty(LocalDateTime after, LocalDateTime before) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        List<String> counterparties = new ArrayList<>();
+        List<BigDecimal> transactions = new ArrayList<>();
+
+        for (Counterparty counterparty : counterpartyService.getAll()) {
+            counterparties.add(counterparty.getName());
+            transactions.add(BigDecimal.ZERO);
+        }
+
+        for (Transaction transaction : transactionRepository
+                .findAllByDeletedAndActionContainingAndDateCreatedAfterAndDateCreatedBefore(false, "EXPENSE", after, before)) {
+            int index = counterparties.indexOf(transaction.getCounterparty().getName());
+            BigDecimal temp = transaction.getBalance().add(transactions.get(index));
+            transactions.set(index, temp);
+        }
+
+        for (int i = 0; i < transactions.size(); i++)
+            map.put(counterparties.get(i), transactions.get(i));
+        return ResponseEntity.ok().body(map);
+    }
+
+//    @Override
+//    public ResponseEntity<BigDecimal> expense(LocalDateTime after, LocalDateTime before, String email) {
+//        BigDecimal expense = BigDecimal.ZERO;
+//        List<Transaction> transactions = transactionRepository.findAllByDeletedAndActionContainingIgnoringCase(false, "EXPENSE");
+//        for (Transaction transaction : transactions) {
+//            expense = expense.add(transaction.getBalance());
+//        }
+//        return ResponseEntity.ok().body(expense);
+//    }
 
     @Override
     public ResponseEntity<BigDecimal> profit(LocalDateTime after, LocalDateTime before, String email) {
-        BigDecimal profit = Objects.requireNonNull(this.income(after, before, email).getBody()).subtract(this.expense(after, before, email).getBody());
-//        BigDecimal profit = income.subtract(expense);
+        BigDecimal profit = BigDecimal.ZERO;
+//                Objects.requireNonNull(this.income(after, before, email).getBody()).subtract(this.expense(after, before, email).getBody());
+////        BigDecimal profit = income.subtract(expense);
         return ResponseEntity.ok().body(profit);
     }
 
@@ -282,8 +420,11 @@ public class TransactionServiceImpl implements TransactionService{
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT INCOME action!");
 
         List<Department> departmentList = userRepository.findByEmail(userEmail).getDepartments();
-        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") || departmentList.contains(transaction.getDepartment()))
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") && !departmentList.contains(transaction.getDepartment()))
             throw new AccessDenied("You do not have access to the next departmentId: " + transaction.getDepartment().getId());
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") && !departmentList.contains(transactionIncomeDTO.getDepartment()))
+            throw new AccessDenied("You do not have access to the next departmentId: " + transactionIncomeDTO.getDepartment());
+
         if (transaction.getDepartment().getId() != transactionIncomeDTO.getDepartment()){
             Department department = departmentService.getDepartmentById(transactionIncomeDTO.getDepartment()).getBody();
             transaction.setDepartment(department);
@@ -341,8 +482,10 @@ public class TransactionServiceImpl implements TransactionService{
             throw new ResourceNotFoundException("Transaction id " + id + " is NOT EXPENSE action!");
 
         List<Department> departmentList = userRepository.findByEmail(userEmail).getDepartments();
-        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") || departmentList.contains(transaction.getDepartment()))
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") && !departmentList.contains(transaction.getDepartment()))
             throw new AccessDenied("You do not have access to the next departmentId: " + transaction.getDepartment().getId());
+        if (!transaction.getUser().getRole().getName().equals("ROLE_ADMIN") && !departmentList.contains(transactionExpenseDTO.getDepartment()))
+            throw new AccessDenied("You do not have access to the next departmentId: " + transactionExpenseDTO.getDepartment());
         if (transaction.getDepartment().getId() != transactionExpenseDTO.getDepartment()){
             Department department = departmentService.getDepartmentById(transactionExpenseDTO.getDepartment()).getBody();
             transaction.setDepartment(department);

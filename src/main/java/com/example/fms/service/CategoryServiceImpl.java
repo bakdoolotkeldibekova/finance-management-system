@@ -34,6 +34,11 @@ public class CategoryServiceImpl implements CategoryService{
     private EntityManager entityManager;
 
     @Override
+    public List<Category> getAll() {
+        return categoryRepository.findAll();
+    }
+
+    @Override
     public List<Category> getAll(boolean isDeleted) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter("deletedCategoryFilter");
