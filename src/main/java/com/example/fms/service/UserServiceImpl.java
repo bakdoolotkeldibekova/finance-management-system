@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         user.setDeleted(false);
 
         String message = "Hello, ! \n" +
-                " Please, visit next link to activate your account: http:localhost:8080/registr/activate/" +
+                " Please, visit next link to activate your account: http:neobis.herokuapp.com/registr/activate/" +
                 user.getActivationCode();
         if(mailService.send(user.getEmail(), "Activation Code", message)){
             userRepository.save(user);
